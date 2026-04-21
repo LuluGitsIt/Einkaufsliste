@@ -106,6 +106,7 @@ li{
 <body>
 
 <h1>🛒 Einkaufssystem Holzwerkstatt</h1>
+<div id="statusMsg" style="display:none;padding:10px;margin-bottom:12px;border-radius:6px;font-weight:bold;"></div>
 
 <div class="tabs">
   <button class="tab-btn active" onclick="switchTab('lists')">Listen</button>
@@ -180,9 +181,12 @@ import {
 } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
 const app = initializeApp({
-  apiKey: "DEIN_KEY",
-  authDomain: "DEIN_PROJEKT.firebaseapp.com",
-  projectId: "DEIN_PROJEKT"
+  apiKey: "AIzaSyBP3oj8MkzyDxiFWygr7xPN4ixUbPoEVBM",
+  authDomain: "einkaufsliste-138fd.firebaseapp.com",
+  projectId: "einkaufsliste-138fd",
+  storageBucket: "einkaufsliste-138fd.firebasestorage.app",
+  messagingSenderId: "892194095441",
+  appId: "1:892194095441:web:0205864f9dcb1fb03bd370"
 });
 
 const db = getFirestore(app);
@@ -203,6 +207,18 @@ function normalize(data){
     user: data.user || "Unbekannt",
     createdAt: data.createdAt || Date.now()
   };
+}
+
+/* =========================
+   STATUS / FEHLERANZEIGE
+========================= */
+function showStatus(msg, isError){
+  const el = document.getElementById("statusMsg");
+  el.textContent = msg;
+  el.style.display = "block";
+  el.style.background = isError ? "#f8d7da" : "#d4edda";
+  el.style.color = isError ? "#721c24" : "#155724";
+  if(!isError) setTimeout(()=>{ el.style.display="none"; }, 3000);
 }
 
 /* =========================
@@ -241,12 +257,17 @@ window.addItem = async function(){
 
   if(!data.name || !data.user) return;
 
-  const shopRef = await addDoc(shoppingRef, data);
-  await saveToInventory(data, shopRef.id);
-
-  itemName.value="";
-  itemLink.value="";
-  itemPrice.value="";
+  try {
+    const shopRef = await addDoc(shoppingRef, data);
+    await saveToInventory(data, shopRef.id);
+    showStatus("✅ Gespeichert: " + data.name, false);
+    itemName.value="";
+    itemLink.value="";
+    itemPrice.value="";
+  } catch(e) {
+    showStatus("❌ Fehler beim Speichern: " + e.message, true);
+    console.error(e);
+  }
 };
 
 window.addWish = async function(){
@@ -260,12 +281,17 @@ window.addWish = async function(){
 
   if(!data.name || !data.user) return;
 
-  const wRef = await addDoc(wishRef, data);
-  await saveToInventory(data, wRef.id);
-
-  wishName.value="";
-  wishLink.value="";
-  wishPrice.value="";
+  try {
+    const wRef = await addDoc(wishRef, data);
+    await saveToInventory(data, wRef.id);
+    showStatus("✅ Gespeichert: " + data.name, false);
+    wishName.value="";
+    wishLink.value="";
+    wishPrice.value="";
+  } catch(e) {
+    showStatus("❌ Fehler beim Speichern: " + e.message, true);
+    console.error(e);
+  }
 };
 
 /* =========================
@@ -366,20 +392,20 @@ function renderInv(data,id){
 /* =========================
    LIVE SYNC
 ========================= */
-onSnapshot(shoppingRef,s=>{
+onSnapshot(shoppingRef, s=>{
   shoppingList.innerHTML="";
   s.forEach(d=>shoppingList.appendChild(render(d.data(),d.id,"shoppingList")));
-});
+}, e=>showStatus("❌ Firebase-Verbindungsfehler: " + e.message, true));
 
-onSnapshot(wishRef,s=>{
+onSnapshot(wishRef, s=>{
   wishList.innerHTML="";
   s.forEach(d=>wishList.appendChild(render(d.data(),d.id,"wishList")));
-});
+}, e=>showStatus("❌ Firebase-Verbindungsfehler: " + e.message, true));
 
-onSnapshot(inventoryRef,s=>{
+onSnapshot(inventoryRef, s=>{
   inventoryList.innerHTML="";
   s.forEach(d=>inventoryList.appendChild(renderInv(d.data(),d.id)));
-});
+}, e=>showStatus("❌ Firebase-Verbindungsfehler: " + e.message, true));
 
 </script>
 
