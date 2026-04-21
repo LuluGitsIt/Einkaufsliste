@@ -1,4 +1,3 @@
-```html id="m8r2ke"
 <!DOCTYPE html>
 <html lang="de">
 <head>
@@ -35,7 +34,9 @@ button{
   cursor:pointer;
 }
 
-button:hover{ background:#0056b3; }
+button:hover{
+  background:#0056b3;
+}
 
 button.delete{
   width:auto;
@@ -43,7 +44,9 @@ button.delete{
   padding:6px 10px;
 }
 
-button.delete:hover{ background:#cc0000; }
+button.delete:hover{
+  background:#cc0000;
+}
 
 button.edit{
   width:auto;
@@ -51,7 +54,9 @@ button.edit{
   padding:6px 10px;
 }
 
-button.edit:hover{ background:#1e7e34; }
+button.edit:hover{
+  background:#1e7e34;
+}
 
 h1,h2{
   border-bottom:2px solid #333;
@@ -103,9 +108,20 @@ li{
   width:fit-content;
 }
 
-.green{ background:#d4edda; color:#155724; }
-.yellow{ background:#fff3cd; color:#856404; }
-.red{ background:#f8d7da; color:#721c24; }
+.green{
+  background:#d4edda;
+  color:#155724;
+}
+
+.yellow{
+  background:#fff3cd;
+  color:#856404;
+}
+
+.red{
+  background:#f8d7da;
+  color:#721c24;
+}
 
 /* Modal */
 .modal{
@@ -131,7 +147,9 @@ li{
   gap:10px;
 }
 
-.modal-buttons button{ flex:1; }
+.modal-buttons button{
+  flex:1;
+}
 
 .cancel{
   background:#888;
@@ -149,7 +167,6 @@ li{
 
 <!-- Einkaufsliste -->
 <div class="form-group">
-  <input type="text" id="itemUserInput" placeholder="Dein Name..." />
   <input type="text" id="itemInput" placeholder="Artikel eingeben..." />
   <input type="text" id="itemLinkInput" placeholder="Link (optional)" />
   <input type="text" id="itemPriceInput" placeholder="Preis (optional)" />
@@ -159,6 +176,8 @@ li{
     <option value="yellow">🟡 Gelb</option>
     <option value="red">🔴 Rot</option>
   </select>
+
+  <input type="text" id="itemUserInput" placeholder="Name (optional)" />
 
   <button onclick="addItem()">Hinzufügen</button>
 </div>
@@ -171,7 +190,6 @@ li{
 <h2>🎁 Wunschliste</h2>
 
 <div class="form-group">
-  <input type="text" id="wishUserInput" placeholder="Dein Name..." />
   <input type="text" id="wishNameInput" placeholder="Wunschartikel..." />
   <input type="text" id="wishLinkInput" placeholder="Link (optional)" />
   <input type="text" id="wishPriceInput" placeholder="Preis (optional)" />
@@ -181,6 +199,8 @@ li{
     <option value="yellow">🟡 Gelb</option>
     <option value="red">🔴 Rot</option>
   </select>
+
+  <input type="text" id="wishUserInput" placeholder="Name (optional)" />
 
   <button onclick="addWishItem()">Wunsch hinzufügen</button>
 </div>
@@ -193,7 +213,6 @@ li{
     <h3>✏️ Eintrag bearbeiten</h3>
 
     <div class="form-group">
-      <input type="text" id="editUser" placeholder="Name">
       <input type="text" id="editName" placeholder="Artikel">
       <input type="text" id="editLink" placeholder="Link">
       <input type="text" id="editPrice" placeholder="Preis">
@@ -203,6 +222,8 @@ li{
         <option value="yellow">🟡 Gelb</option>
         <option value="red">🔴 Rot</option>
       </select>
+
+      <input type="text" id="editUser" placeholder="Name (optional)">
     </div>
 
     <div class="modal-buttons">
@@ -257,18 +278,18 @@ function formatDate(timestamp){
   return new Date(timestamp).toLocaleString("de-DE");
 }
 
-/* Einkaufsliste */
+/* Einkaufsliste speichern */
 window.addItem = async function(){
-  const user = document.getElementById("itemUserInput").value.trim();
   const name = document.getElementById("itemInput").value.trim();
   const link = fixUrl(document.getElementById("itemLinkInput").value.trim());
   const price = document.getElementById("itemPriceInput").value.trim();
   const priority = document.getElementById("itemPriorityInput").value;
+  const user = document.getElementById("itemUserInput").value.trim();
 
   if(!name) return;
 
   await addDoc(listRef,{
-    user: user || "Unbekannt",
+    user,
     name,
     link,
     price,
@@ -279,20 +300,21 @@ window.addItem = async function(){
   document.getElementById("itemInput").value = "";
   document.getElementById("itemLinkInput").value = "";
   document.getElementById("itemPriceInput").value = "";
+  document.getElementById("itemUserInput").value = "";
 };
 
-/* Wunschliste */
+/* Wunschliste speichern */
 window.addWishItem = async function(){
-  const user = document.getElementById("wishUserInput").value.trim();
   const name = document.getElementById("wishNameInput").value.trim();
   const link = fixUrl(document.getElementById("wishLinkInput").value.trim());
   const price = document.getElementById("wishPriceInput").value.trim();
   const priority = document.getElementById("wishPriorityInput").value;
+  const user = document.getElementById("wishUserInput").value.trim();
 
   if(!name) return;
 
   await addDoc(wishRef,{
-    user: user || "Unbekannt",
+    user,
     name,
     link,
     price,
@@ -303,37 +325,40 @@ window.addWishItem = async function(){
   document.getElementById("wishNameInput").value = "";
   document.getElementById("wishLinkInput").value = "";
   document.getElementById("wishPriceInput").value = "";
+  document.getElementById("wishUserInput").value = "";
 };
 
-/* Modal */
+/* Modal öffnen */
 window.openEditModal = function(data,id,collectionName){
   currentEditId = id;
   currentCollection = collectionName;
 
-  document.getElementById("editUser").value = data.user || "";
   document.getElementById("editName").value = data.name || "";
   document.getElementById("editLink").value = data.link || "";
   document.getElementById("editPrice").value = data.price || "";
   document.getElementById("editPriority").value = data.priority || "green";
+  document.getElementById("editUser").value = data.user || "";
 
   document.getElementById("editModal").style.display = "flex";
 };
 
+/* Modal schließen */
 window.closeModal = function(){
   document.getElementById("editModal").style.display = "none";
 };
 
+/* Bearbeiten speichern */
 window.saveEdit = async function(){
-  const user = document.getElementById("editUser").value.trim();
   const name = document.getElementById("editName").value.trim();
   const link = fixUrl(document.getElementById("editLink").value.trim());
   const price = document.getElementById("editPrice").value.trim();
   const priority = document.getElementById("editPriority").value;
+  const user = document.getElementById("editUser").value.trim();
 
   if(!name) return;
 
   await updateDoc(doc(db,currentCollection,currentEditId),{
-    user: user || "Unbekannt",
+    user,
     name,
     link,
     price,
@@ -358,35 +383,34 @@ function createItem(docData,id,collectionName){
   const prio = document.createElement("span");
   prio.className = "priority " + (docData.priority || "green");
   prio.textContent =
-    docData.priority === "yellow" ? "🟡 Gelb" :
-    docData.priority === "red" ? "🔴 Rot" :
-    "🟢 Grün";
+    docData.priority === "yellow"
+      ? "🟡 Gelb"
+      : docData.priority === "red"
+      ? "🔴 Rot"
+      : "🟢 Grün";
 
   info.appendChild(prio);
-
-  const meta = document.createElement("span");
-  meta.className = "item-meta";
-  meta.textContent =
-    "👤 " + (docData.user || "Unbekannt") +
-    " | 📅 " + formatDate(docData.createdAt);
-
-  info.appendChild(meta);
 
   const details = document.createElement("span");
   details.className = "item-details";
 
   let txt = [];
 
-  if(docData.price) txt.push("💰 " + docData.price);
+  if(docData.price){
+    txt.push("💰 " + docData.price);
+  }
 
   details.innerHTML = txt.join(" | ");
 
   if(docData.link){
-    if(txt.length > 0) details.innerHTML += " | ";
+    if(txt.length > 0){
+      details.innerHTML += " | ";
+    }
 
     const a = document.createElement("a");
     a.href = docData.link;
     a.target = "_blank";
+    a.rel = "noopener noreferrer";
     a.textContent = "🔗 Link öffnen";
 
     details.appendChild(a);
@@ -396,50 +420,67 @@ function createItem(docData,id,collectionName){
     info.appendChild(details);
   }
 
-  const buttons = document.createElement("div");
-  buttons.style.display = "flex";
-  buttons.style.gap = "8px";
+  const meta = document.createElement("span");
+  meta.className = "item-meta";
+
+  let metaText = "📅 " + formatDate(docData.createdAt);
+
+  if(docData.user){
+    metaText += " | 👤 " + docData.user;
+  }
+
+  meta.textContent = metaText;
+  info.appendChild(meta);
+
+  const buttonWrap = document.createElement("div");
+  buttonWrap.style.display = "flex";
+  buttonWrap.style.gap = "8px";
 
   const editBtn = document.createElement("button");
   editBtn.className = "edit";
   editBtn.textContent = "✏️";
-  editBtn.onclick = () => openEditModal(docData,id,collectionName);
 
-  const delBtn = document.createElement("button");
-  delBtn.className = "delete";
-  delBtn.textContent = "X";
-  delBtn.onclick = async () => {
+  editBtn.onclick = () => {
+    openEditModal(docData,id,collectionName);
+  };
+
+  const deleteBtn = document.createElement("button");
+  deleteBtn.className = "delete";
+  deleteBtn.textContent = "X";
+
+  deleteBtn.onclick = async () => {
     await deleteDoc(doc(db,collectionName,id));
   };
 
-  buttons.appendChild(editBtn);
-  buttons.appendChild(delBtn);
+  buttonWrap.appendChild(editBtn);
+  buttonWrap.appendChild(deleteBtn);
 
   li.appendChild(info);
-  li.appendChild(buttons);
+  li.appendChild(buttonWrap);
 
   return li;
 }
 
-/* Live Sync */
+/* Live Sync Einkaufsliste */
 onSnapshot(listRef,(snapshot)=>{
   const list = document.getElementById("list");
   list.innerHTML = "";
 
   snapshot.forEach((itemDoc)=>{
     list.appendChild(
-      createItem(itemDoc.data(),itemDoc.id,"shoppingList")
+      createItem(itemDoc.data(), itemDoc.id, "shoppingList")
     );
   });
 });
 
+/* Live Sync Wunschliste */
 onSnapshot(wishRef,(snapshot)=>{
   const list = document.getElementById("wishList");
   list.innerHTML = "";
 
   snapshot.forEach((itemDoc)=>{
     list.appendChild(
-      createItem(itemDoc.data(),itemDoc.id,"wishList")
+      createItem(itemDoc.data(), itemDoc.id, "wishList")
     );
   });
 });
@@ -447,4 +488,3 @@ onSnapshot(wishRef,(snapshot)=>{
 
 </body>
 </html>
-```
