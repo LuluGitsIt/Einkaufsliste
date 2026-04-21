@@ -1,305 +1,335 @@
 <!DOCTYPE html>
 <html lang="de">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Einkaufsliste Holzwerkstatt</title>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>Einkaufsliste Holzwerkstatt</title>
 
-  <style>
-    body {
-      font-family: Arial, sans-serif;
-      max-width: 600px;
-      margin: 40px auto;
-      padding: 20px;
-    }
+<style>
+body {
+  font-family: Arial, sans-serif;
+  max-width: 700px;
+  margin: 40px auto;
+  padding: 20px;
+}
 
-    .form-group {
-      display: flex;
-      flex-direction: column;
-      gap: 5px;
-      margin-bottom: 15px;
-    }
+.form-group {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin-bottom: 20px;
+}
 
-    input, button {
-      padding: 10px;
-      width: 100%;
-      font-size: 16px;
-      box-sizing: border-box;
-    }
+input, select, button {
+  padding: 10px;
+  width: 100%;
+  font-size: 16px;
+  box-sizing: border-box;
+}
 
-    button {
-      background: #007bff;
-      color: white;
-      border: none;
-      cursor: pointer;
-      margin-top: 5px;
-    }
+button {
+  background: #007bff;
+  color: white;
+  border: none;
+  cursor: pointer;
+}
 
-    button:hover {
-      background: #0056b3;
-    }
+button:hover {
+  background: #0056b3;
+}
 
-    h1, h2 {
-      border-bottom: 2px solid #333;
-      padding-bottom: 5px;
-      margin-top: 40px;
-    }
+button.delete {
+  width: auto;
+  background: #ff4d4d;
+  padding: 6px 10px;
+}
 
-    h1 { margin-top: 0; }
+button.delete:hover {
+  background: #cc0000;
+}
 
-    ul {
-      padding-left: 0;
-      list-style: none;
-    }
+h1, h2 {
+  border-bottom: 2px solid #333;
+  padding-bottom: 5px;
+  margin-top: 35px;
+}
 
-    li {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      padding: 10px;
-      border-bottom: 1px solid #ddd;
-    }
+ul {
+  list-style: none;
+  padding: 0;
+}
 
-    .item-info {
-      display: flex;
-      flex-direction: column;
-      gap: 2px;
-    }
+li {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 15px;
+  padding: 12px;
+  border-bottom: 1px solid #ddd;
+}
 
-    .item-name {
-      font-weight: bold;
-    }
+.item-info {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  flex: 1;
+}
 
-    .item-details {
-      font-size: 14px;
-      color: #555;
-    }
+.item-name {
+  font-weight: bold;
+}
 
-    .item-details a {
-      color: #007bff;
-      text-decoration: none;
-    }
+.item-details {
+  font-size: 14px;
+  color: #555;
+}
 
-    button.delete {
-      width: auto;
-      background: #ff4d4d;
-      color: white;
-      border: none;
-      padding: 5px 10px;
-      cursor: pointer;
-    }
+.item-details a {
+  color: #007bff;
+  text-decoration: none;
+}
 
-    button.delete:hover {
-      background: #cc0000;
-    }
-  </style>
+.priority {
+  font-size: 13px;
+  font-weight: bold;
+  padding: 4px 8px;
+  border-radius: 8px;
+  width: fit-content;
+}
+
+.green {
+  background: #d4edda;
+  color: #155724;
+}
+
+.yellow {
+  background: #fff3cd;
+  color: #856404;
+}
+
+.red {
+  background: #f8d7da;
+  color: #721c24;
+}
+</style>
 </head>
 
 <body>
 
-  <h1>🛒 Einkaufsliste Holzwerkstatt</h1>
+<h1>🛒 Einkaufsliste Holzwerkstatt</h1>
 
-  <div class="form-group">
-    <input type="text" id="itemInput" placeholder="Artikel eingeben..." />
-    <button onclick="addItem()">Hinzufügen</button>
-  </div>
+<!-- Einkaufsliste -->
+<div class="form-group">
+  <input type="text" id="itemInput" placeholder="Artikel eingeben..." />
+  <input type="text" id="itemLinkInput" placeholder="Link (optional)" />
+  <input type="text" id="itemPriceInput" placeholder="Preis (optional)" />
 
-  <ul id="list"></ul>
+  <select id="itemPriorityInput">
+    <option value="green">🟢 Grün</option>
+    <option value="yellow">🟡 Gelb</option>
+    <option value="red">🔴 Rot</option>
+  </select>
 
-  <hr />
+  <button onclick="addItem()">Hinzufügen</button>
+</div>
 
-  <!-- ✨ Wunschliste Sektion -->
-  <h2>🎁 Wunschliste</h2>
+<ul id="list"></ul>
 
-  <div class="form-group">
-    <input type="text" id="wishNameInput" placeholder="Wunsch-Artikel eingeben..." />
-    <input type="text" id="wishLinkInput" placeholder="Link hinzufügen (Optional)..." />
-    <input type="text" id="wishPriceInput" placeholder="Preis eingeben (Optional)..." />
-    <button onclick="addWishItem()">Wunsch hinzufügen</button>
-  </div>
+<hr>
 
-  <ul id="wishList"></ul>
+<!-- Wunschliste -->
+<h2>🎁 Wunschliste</h2>
 
-  <script type="module">
+<div class="form-group">
+  <input type="text" id="wishNameInput" placeholder="Wunschartikel..." />
+  <input type="text" id="wishLinkInput" placeholder="Link (optional)" />
+  <input type="text" id="wishPriceInput" placeholder="Preis (optional)" />
 
-    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
-    import {
-      getFirestore,
-      collection,
-      addDoc,
-      deleteDoc,
-      doc,
-      onSnapshot
-    } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+  <select id="wishPriorityInput">
+    <option value="green">🟢 Grün</option>
+    <option value="yellow">🟡 Gelb</option>
+    <option value="red">🔴 Rot</option>
+  </select>
 
-    console.log("SCRIPT START");
+  <button onclick="addWishItem()">Wunsch hinzufügen</button>
+</div>
 
-    // 🔥 Firebase Config
-    const firebaseConfig = {
-      apiKey: "AIzaSyBP3oj8MkzyDxiFWygr7xPN4ixUbPoEVBM",
-      authDomain: "einkaufsliste-138fd.firebaseapp.com",
-      projectId: "einkaufsliste-138fd",
-      storageBucket: "einkaufsliste-138fd.appspot.com",
-      messagingSenderId: "892194095441",
-      appId: "1:892194095441:web:0205864f9dcb1fb03bd370"
-    };
+<ul id="wishList"></ul>
 
-    // 🚀 Init Firebase
-    const app = initializeApp(firebaseConfig);
-    const db = getFirestore(app);
+<script type="module">
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
 
-    console.log("Firebase init done");
+import {
+  getFirestore,
+  collection,
+  addDoc,
+  deleteDoc,
+  doc,
+  onSnapshot
+} from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
-    // 📌 Referenzen für beide Collections
-    const listRef = collection(db, "shoppingList");
-    const wishRef = collection(db, "wishList");
+const firebaseConfig = {
+  apiKey: "DEIN_KEY",
+  authDomain: "DEIN_PROJEKT.firebaseapp.com",
+  projectId: "DEIN_PROJEKT",
+  storageBucket: "DEIN_PROJEKT.appspot.com",
+  messagingSenderId: "123456",
+  appId: "123456"
+};
 
-    // ➕ Add Item (Einkaufsliste)
-    window.addItem = async function () {
-      const input = document.getElementById("itemInput");
-      const value = input.value.trim();
+const app = initializeApp(firebaseConfig);
+const db = getFirestore(app);
 
-      if (!value) return;
+const listRef = collection(db, "shoppingList");
+const wishRef = collection(db, "wishList");
 
-      try {
-        await addDoc(listRef, {
-          name: value,
-          createdAt: Date.now()
-        });
+function fixUrl(url) {
+  if (!url) return "";
+  if (!url.startsWith("http://") && !url.startsWith("https://")) {
+    return "https://" + url;
+  }
+  return url;
+}
 
-        input.value = "";
-        console.log("Einkaufsartikel gespeichert:", value);
+/* =========================
+   Einkaufsliste speichern
+========================= */
+window.addItem = async function () {
+  const name = document.getElementById("itemInput").value.trim();
+  const link = fixUrl(document.getElementById("itemLinkInput").value.trim());
+  const price = document.getElementById("itemPriceInput").value.trim();
+  const priority = document.getElementById("itemPriorityInput").value;
 
-      } catch (err) {
-        console.error("Fehler beim Speichern:", err);
-      }
-    };
+  if (!name) return;
 
-    // ➕ Add Wish Item (Wunschliste)
-    window.addWishItem = async function () {
-      const nameInput = document.getElementById("wishNameInput");
-      const linkInput = document.getElementById("wishLinkInput");
-      const priceInput = document.getElementById("wishPriceInput");
+  await addDoc(listRef, {
+    name,
+    link,
+    price,
+    priority,
+    createdAt: Date.now()
+  });
 
-      const nameValue = nameInput.value.trim();
-      let linkValue = linkInput.value.trim();
-      const priceValue = priceInput.value.trim();
+  document.getElementById("itemInput").value = "";
+  document.getElementById("itemLinkInput").value = "";
+  document.getElementById("itemPriceInput").value = "";
+};
 
-      if (!nameValue) return;
+/* =========================
+   Wunschliste speichern
+========================= */
+window.addWishItem = async function () {
+  const name = document.getElementById("wishNameInput").value.trim();
+  const link = fixUrl(document.getElementById("wishLinkInput").value.trim());
+  const price = document.getElementById("wishPriceInput").value.trim();
+  const priority = document.getElementById("wishPriorityInput").value;
 
-      // URL Validierung: Automatisch http:// hinzufügen falls vergessen
-      if (linkValue && !linkValue.startsWith('http://') && !linkValue.startsWith('https://')) {
-        linkValue = 'https://' + linkValue;
-      }
+  if (!name) return;
 
-      try {
-        await addDoc(wishRef, {
-          name: nameValue,
-          link: linkValue || "",
-          price: priceValue || "",
-          createdAt: Date.now()
-        });
+  await addDoc(wishRef, {
+    name,
+    link,
+    price,
+    priority,
+    createdAt: Date.now()
+  });
 
-        // Felder leeren
-        nameInput.value = "";
-        linkInput.value = "";
-        priceInput.value = "";
-        console.log("Wunsch gespeichert:", nameValue);
+  document.getElementById("wishNameInput").value = "";
+  document.getElementById("wishLinkInput").value = "";
+  document.getElementById("wishPriceInput").value = "";
+};
 
-      } catch (err) {
-        console.error("Fehler beim Speichern des Wunsches:", err);
-      }
-    };
+/* =========================
+   Darstellung
+========================= */
+function createItem(docData, id, collectionName) {
+  const li = document.createElement("li");
 
-    // 📡 Live Sync - Einkaufsliste
-    onSnapshot(listRef, (snapshot) => {
-      const list = document.getElementById("list");
-      list.innerHTML = "";
+  const info = document.createElement("div");
+  info.className = "item-info";
 
-      snapshot.forEach((itemDoc) => {
-        const data = itemDoc.data();
-        const li = document.createElement("li");
+  const name = document.createElement("span");
+  name.className = "item-name";
+  name.textContent = docData.name;
+  info.appendChild(name);
 
-        const span = document.createElement("span");
-        span.className = "item-name";
-        span.textContent = data.name;
+  const prio = document.createElement("span");
+  prio.className = "priority " + docData.priority;
+  prio.textContent =
+    docData.priority === "green"
+      ? "🟢 Grün"
+      : docData.priority === "yellow"
+      ? "🟡 Gelb"
+      : "🔴 Rot";
 
-        const btn = document.createElement("button");
-        btn.textContent = "X";
-        btn.className = "delete";
+  info.appendChild(prio);
 
-        btn.onclick = async () => {
-          await deleteDoc(doc(db, "shoppingList", itemDoc.id));
-        };
+  const details = document.createElement("span");
+  details.className = "item-details";
 
-        li.appendChild(span);
-        li.appendChild(btn);
-        list.appendChild(li);
-      });
-    });
+  let txt = [];
 
-    // 📡 Live Sync - Wunschliste
-    onSnapshot(wishRef, (snapshot) => {
-      const wishList = document.getElementById("wishList");
-      wishList.innerHTML = "";
+  if (docData.price) txt.push("💰 " + docData.price);
 
-      snapshot.forEach((itemDoc) => {
-        const data = itemDoc.data();
-        const li = document.createElement("li");
+  details.innerHTML = txt.join(" | ");
 
-        // Container für die Text-Infos
-        const infoDiv = document.createElement("div");
-        infoDiv.className = "item-info";
+  if (docData.link) {
+    if (txt.length > 0) details.innerHTML += " | ";
 
-        const nameSpan = document.createElement("span");
-        nameSpan.className = "item-name";
-        nameSpan.textContent = data.name;
-        infoDiv.appendChild(nameSpan);
+    const a = document.createElement("a");
+    a.href = docData.link;
+    a.target = "_blank";
+    a.textContent = "🔗 Link öffnen";
 
-        // Details (Preis & Link)
-        const detailsSpan = document.createElement("span");
-        detailsSpan.className = "item-details";
+    details.appendChild(a);
+  }
 
-        let detailsArray = [];
-        
-        if (data.price) {
-          detailsArray.push(`💰 Preis: ${data.price}`);
-        }
+  if (docData.price || docData.link) {
+    info.appendChild(details);
+  }
 
-        detailsSpan.innerHTML = detailsArray.join(" | ");
+  const btn = document.createElement("button");
+  btn.className = "delete";
+  btn.textContent = "X";
 
-        // Falls ein Link existiert, klickbar machen
-        if (data.link) {
-          if (detailsArray.length > 0) detailsSpan.innerHTML += " | ";
-          
-          const a = document.createElement("a");
-          a.href = data.link;
-          a.target = "_blank";
-          a.rel = "noopener noreferrer";
-          a.textContent = "🔗 Link öffnen";
-          detailsSpan.appendChild(a);
-        }
+  btn.onclick = async () => {
+    await deleteDoc(doc(db, collectionName, id));
+  };
 
-        if (data.price || data.link) {
-          infoDiv.appendChild(detailsSpan);
-        }
+  li.appendChild(info);
+  li.appendChild(btn);
 
-        // Delete Button
-        const btn = document.createElement("button");
-        btn.textContent = "X";
-        btn.className = "delete";
+  return li;
+}
 
-        btn.onclick = async () => {
-          await deleteDoc(doc(db, "wishList", itemDoc.id));
-        };
+/* =========================
+   Live Sync Einkaufsliste
+========================= */
+onSnapshot(listRef, (snapshot) => {
+  const list = document.getElementById("list");
+  list.innerHTML = "";
 
-        li.appendChild(infoDiv);
-        li.appendChild(btn);
-        wishList.appendChild(li);
-      });
-    });
+  snapshot.forEach((itemDoc) => {
+    list.appendChild(
+      createItem(itemDoc.data(), itemDoc.id, "shoppingList")
+    );
+  });
+});
 
-  </script>
+/* =========================
+   Live Sync Wunschliste
+========================= */
+onSnapshot(wishRef, (snapshot) => {
+  const list = document.getElementById("wishList");
+  list.innerHTML = "";
+
+  snapshot.forEach((itemDoc) => {
+    list.appendChild(
+      createItem(itemDoc.data(), itemDoc.id, "wishList")
+    );
+  });
+});
+</script>
 
 </body>
 </html>
