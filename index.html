@@ -1,4 +1,3 @@
-```html id="s3n7qd"
 <!DOCTYPE html>
 <html lang="de">
 <head>
@@ -9,9 +8,35 @@
 <style>
 body{
   font-family:Arial,sans-serif;
-  max-width:700px;
+  max-width:900px;
   margin:40px auto;
   padding:20px;
+}
+
+.tabs{
+  display:flex;
+  gap:10px;
+  margin-bottom:20px;
+}
+
+.tab-btn{
+  width:auto;
+  padding:10px 16px;
+  background:#e9ecef;
+  color:#222;
+}
+
+.tab-btn.active{
+  background:#007bff;
+  color:#fff;
+}
+
+.tab-content{
+  display:none;
+}
+
+.tab-content.active{
+  display:block;
 }
 
 .form-group{
@@ -22,9 +47,8 @@ body{
 }
 
 label{
-  font-weight:bold;
   font-size:14px;
-  margin-top:4px;
+  font-weight:bold;
 }
 
 input,select,button{
@@ -67,10 +91,18 @@ button.move{
 
 button.move:hover{ background:#d67f00; }
 
+button.copy{
+  width:auto;
+  background:#6f42c1;
+  padding:6px 10px;
+}
+
+button.copy:hover{ background:#59359c; }
+
 h1,h2{
   border-bottom:2px solid #333;
   padding-bottom:5px;
-  margin-top:35px;
+  margin-top:25px;
 }
 
 ul{
@@ -119,6 +151,12 @@ li{
 .yellow{ background:#fff3cd; color:#856404; }
 .red{ background:#f8d7da; color:#721c24; }
 
+.actions{
+  display:flex;
+  gap:8px;
+  flex-wrap:wrap;
+}
+
 /* Modal */
 .modal{
   position:fixed;
@@ -161,8 +199,20 @@ li{
 
 <h1>🛒 Einkaufsliste Holzwerkstatt</h1>
 
+<div class="tabs">
+  <button class="tab-btn active" onclick="showTab('listsTab', this)">Listen</button>
+  <button class="tab-btn" onclick="showTab('inventoryTab', this)">Inventar</button>
+</div>
+
+<!-- ===============================
+TAB 1 LISTEN
+=============================== -->
+<div id="listsTab" class="tab-content active">
+
 <!-- Einkaufsliste -->
 <div class="form-group">
+  <h2>Einkaufsliste</h2>
+
   <input type="text" id="itemInput" placeholder="Artikel eingeben..." />
   <input type="text" id="itemLinkInput" placeholder="Link (optional)" />
   <input type="text" id="itemPriceInput" placeholder="Preis (optional)" />
@@ -174,7 +224,7 @@ li{
     <option value="red">🔴 Rot</option>
   </select>
 
-  <input type="text" id="itemUserInput" placeholder="Name" required />
+  <input type="text" id="itemUserInput" placeholder="Name" />
 
   <button onclick="addItem()">Hinzufügen</button>
 </div>
@@ -183,10 +233,10 @@ li{
 
 <hr>
 
-<h2>🎁 Wunschliste</h2>
-
 <!-- Wunschliste -->
 <div class="form-group">
+  <h2>Wunschliste</h2>
+
   <input type="text" id="wishNameInput" placeholder="Wunschartikel..." />
   <input type="text" id="wishLinkInput" placeholder="Link (optional)" />
   <input type="text" id="wishPriceInput" placeholder="Preis (optional)" />
@@ -198,14 +248,26 @@ li{
     <option value="red">🔴 Rot</option>
   </select>
 
-  <input type="text" id="wishUserInput" placeholder="Name" required />
+  <input type="text" id="wishUserInput" placeholder="Name" />
 
   <button onclick="addWishItem()">Wunsch hinzufügen</button>
 </div>
 
 <ul id="wishList"></ul>
 
-<!-- Bearbeiten Modal -->
+</div>
+
+<!-- ===============================
+TAB 2 INVENTAR
+=============================== -->
+<div id="inventoryTab" class="tab-content">
+  <h2>📦 Inventar</h2>
+  <ul id="inventoryList"></ul>
+</div>
+
+<!-- ===============================
+EDIT MODAL
+=============================== -->
 <div id="editModal" class="modal">
   <div class="modal-box">
     <h3>✏️ Eintrag bearbeiten</h3>
@@ -242,7 +304,10 @@ import {
   deleteDoc,
   doc,
   onSnapshot,
-  updateDoc
+  updateDoc,
+  getDocs,
+  query,
+  where
 } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
 const firebaseConfig = {
@@ -257,12 +322,16 @@ const firebaseConfig = {
 const app = initializeApp(firebaseConfig);
 const db = getFirestore(app);
 
-const listRef = collection(db, "shoppingList");
-const wishRef = collection(db, "wishList");
+const listRef = collection(db,"shoppingList");
+const wishRef = collection(db,"wishList");
+const inventoryRef = collection(db,"inventory");
 
 let currentEditId = null;
 let currentCollection = null;
 
+/* ======================
+Helpers
+====================== */
 function fixUrl(url){
   if(!url) return "";
   if(!url.startsWith("http://") && !url.startsWith("https://")){
@@ -276,22 +345,43 @@ function formatDate(timestamp){
   return new Date(timestamp).toLocaleString("de-DE");
 }
 
+window.showTab = function(id, btn){
+  document.querySelectorAll(".tab-content").forEach(t => t.classList.remove("active"));
+  document.querySelectorAll(".tab-btn").forEach(b => b.classList.remove("active"));
+
+  document.getElementById(id).classList.add("active");
+  btn.classList.add("active");
+};
+
+async function saveToInventory(data){
+  const q = query(inventoryRef, where("name","==",data.name));
+  const snap = await getDocs(q);
+
+  if(snap.empty){
+    await addDoc(inventoryRef,{
+      ...data,
+      inventorySavedAt: Date.now()
+    });
+  }
+}
+
 /* ======================
-   Hinzufügen
+Add
 ====================== */
 window.addItem = async function(){
-  const name = document.getElementById("itemInput").value.trim();
-  const link = fixUrl(document.getElementById("itemLinkInput").value.trim());
-  const price = document.getElementById("itemPriceInput").value.trim();
-  const priority = document.getElementById("itemPriorityInput").value;
-  const user = document.getElementById("itemUserInput").value.trim();
-
-  if(!name || !user) return;
-
-  await addDoc(listRef,{
-    user,name,link,price,priority,
+  const data = {
+    name: itemInput.value.trim(),
+    link: fixUrl(itemLinkInput.value.trim()),
+    price: itemPriceInput.value.trim(),
+    priority: itemPriorityInput.value,
+    user: itemUserInput.value.trim(),
     createdAt: Date.now()
-  });
+  };
+
+  if(!data.name || !data.user) return;
+
+  await addDoc(listRef,data);
+  await saveToInventory(data);
 
   itemInput.value="";
   itemLinkInput.value="";
@@ -299,18 +389,19 @@ window.addItem = async function(){
 };
 
 window.addWishItem = async function(){
-  const name = document.getElementById("wishNameInput").value.trim();
-  const link = fixUrl(document.getElementById("wishLinkInput").value.trim());
-  const price = document.getElementById("wishPriceInput").value.trim();
-  const priority = document.getElementById("wishPriorityInput").value;
-  const user = document.getElementById("wishUserInput").value.trim();
-
-  if(!name || !user) return;
-
-  await addDoc(wishRef,{
-    user,name,link,price,priority,
+  const data = {
+    name: wishNameInput.value.trim(),
+    link: fixUrl(wishLinkInput.value.trim()),
+    price: wishPriceInput.value.trim(),
+    priority: wishPriorityInput.value,
+    user: wishUserInput.value.trim(),
     createdAt: Date.now()
-  });
+  };
+
+  if(!data.name || !data.user) return;
+
+  await addDoc(wishRef,data);
+  await saveToInventory(data);
 
   wishNameInput.value="";
   wishLinkInput.value="";
@@ -318,7 +409,7 @@ window.addWishItem = async function(){
 };
 
 /* ======================
-   Bearbeiten
+Edit
 ====================== */
 window.openEditModal = function(data,id,collectionName){
   currentEditId = id;
@@ -338,92 +429,94 @@ window.closeModal = function(){
 };
 
 window.saveEdit = async function(){
-  const name = editName.value.trim();
-  const link = fixUrl(editLink.value.trim());
-  const price = editPrice.value.trim();
-  const priority = editPriority.value;
-  const user = editUser.value.trim();
+  const data = {
+    name: editName.value.trim(),
+    link: fixUrl(editLink.value.trim()),
+    price: editPrice.value.trim(),
+    priority: editPriority.value,
+    user: editUser.value.trim()
+  };
 
-  if(!name || !user) return;
+  if(!data.name || !data.user) return;
 
-  await updateDoc(doc(db,currentCollection,currentEditId),{
-    user,name,link,price,priority
-  });
+  await updateDoc(doc(db,currentCollection,currentEditId),data);
+  await saveToInventory({...data, createdAt: Date.now()});
 
   closeModal();
 };
 
 /* ======================
-   Verschieben
+Move
 ====================== */
 async function moveItem(data,id,fromCollection){
-  const target = fromCollection === "shoppingList" ? wishRef : listRef;
+  const targetRef = fromCollection === "shoppingList" ? wishRef : listRef;
 
-  await addDoc(target,{
+  await addDoc(targetRef,{
     ...data
   });
 
+  await saveToInventory(data);
+
+  /* WICHTIG: aus alter Liste löschen */
   await deleteDoc(doc(db,fromCollection,id));
 }
 
 /* ======================
-   Anzeige
+Copy from inventory
 ====================== */
-function createItem(docData,id,collectionName){
+async function copyToList(data,target){
+  const targetRef = target === "shoppingList" ? listRef : wishRef;
+
+  await addDoc(targetRef,{
+    ...data,
+    createdAt: Date.now()
+  });
+}
+
+/* ======================
+Render Normal Item
+====================== */
+function renderItem(docData,id,collectionName){
   const li = document.createElement("li");
 
   const info = document.createElement("div");
   info.className = "item-info";
 
-  const title = document.createElement("span");
-  title.className = "item-name";
-  title.textContent = docData.name;
-  info.appendChild(title);
-
-  const prio = document.createElement("span");
-  prio.className = "priority " + (docData.priority || "green");
-  prio.textContent =
-    docData.priority === "yellow" ? "🟡 Gelb" :
-    docData.priority === "red" ? "🔴 Rot" :
-    "🟢 Grün";
-
-  info.appendChild(prio);
-
-  const details = document.createElement("span");
-  details.className = "item-details";
-
-  let txt = [];
-  if(docData.price) txt.push("💰 " + docData.price);
-
-  details.innerHTML = txt.join(" | ");
-
-  if(docData.link){
-    if(txt.length > 0) details.innerHTML += " | ";
-
-    const a = document.createElement("a");
-    a.href = docData.link;
-    a.target = "_blank";
-    a.rel = "noopener noreferrer";
-    a.textContent = "🔗 Link öffnen";
-
-    details.appendChild(a);
-  }
+  info.innerHTML = `
+    <span class="item-name">${docData.name}</span>
+    <span class="priority ${docData.priority || "green"}">
+      ${docData.priority==="red"?"🔴 Rot":docData.priority==="yellow"?"🟡 Gelb":"🟢 Grün"}
+    </span>
+  `;
 
   if(docData.price || docData.link){
+    const details = document.createElement("span");
+    details.className = "item-details";
+
+    let txt = [];
+    if(docData.price) txt.push("💰 " + docData.price);
+
+    details.innerHTML = txt.join(" | ");
+
+    if(docData.link){
+      if(txt.length > 0) details.innerHTML += " | ";
+      const a = document.createElement("a");
+      a.href = docData.link;
+      a.target = "_blank";
+      a.textContent = "🔗 Link öffnen";
+      details.appendChild(a);
+    }
+
     info.appendChild(details);
   }
 
   const meta = document.createElement("span");
   meta.className = "item-meta";
-  meta.textContent =
-    "📅 " + formatDate(docData.createdAt) +
-    " | 👤 " + docData.user;
-
+  meta.textContent = "📅 " + formatDate(docData.createdAt) + " | 👤 " + docData.user;
   info.appendChild(meta);
 
   const actions = document.createElement("div");
-  actions.style.display = "flex";
-  actions.style.gap = "8px";
+  actions.className = "actions";
 
   const editBtn = document.createElement("button");
   editBtn.className = "edit";
@@ -432,52 +525,82 @@ function createItem(docData,id,collectionName){
 
   const moveBtn = document.createElement("button");
   moveBtn.className = "move";
-  moveBtn.textContent =
-    collectionName === "shoppingList" ? "➡️ Wunsch" : "⬅️ Einkauf";
-
-  moveBtn.onclick = async () => {
-    await moveItem(docData,id,collectionName);
-  };
+  moveBtn.textContent = collectionName==="shoppingList" ? "➡️ Wunsch" : "⬅️ Einkauf";
+  moveBtn.onclick = () => moveItem(docData,id,collectionName);
 
   const delBtn = document.createElement("button");
   delBtn.className = "delete";
   delBtn.textContent = "X";
-  delBtn.onclick = async () => {
-    await deleteDoc(doc(db,collectionName,id));
-  };
+  delBtn.onclick = () => deleteDoc(doc(db,collectionName,id));
 
-  actions.appendChild(editBtn);
-  actions.appendChild(moveBtn);
-  actions.appendChild(delBtn);
+  actions.append(editBtn,moveBtn,delBtn);
 
-  li.appendChild(info);
-  li.appendChild(actions);
-
+  li.append(info,actions);
   return li;
 }
 
 /* ======================
-   Live Sync
+Render Inventory Item
 ====================== */
-onSnapshot(listRef,(snapshot)=>{
-  list.innerHTML = "";
-  snapshot.forEach((itemDoc)=>{
-    list.appendChild(
-      createItem(itemDoc.data(),itemDoc.id,"shoppingList")
-    );
-  });
+function renderInventoryItem(docData,id){
+  const li = document.createElement("li");
+
+  const info = document.createElement("div");
+  info.className = "item-info";
+
+  info.innerHTML = `
+    <span class="item-name">${docData.name}</span>
+    <span class="item-meta">👤 ${docData.user} | 📅 ${formatDate(docData.createdAt)}</span>
+  `;
+
+  const actions = document.createElement("div");
+  actions.className = "actions";
+
+  const copyShop = document.createElement("button");
+  copyShop.className = "copy";
+  copyShop.textContent = "🛒 Einkauf";
+  copyShop.onclick = () => copyToList(docData,"shoppingList");
+
+  const copyWish = document.createElement("button");
+  copyWish.className = "copy";
+  copyWish.textContent = "🎁 Wunsch";
+  copyWish.onclick = () => copyToList(docData,"wishList");
+
+  const delBtn = document.createElement("button");
+  delBtn.className = "delete";
+  delBtn.textContent = "X";
+  delBtn.onclick = () => deleteDoc(doc(db,"inventory",id));
+
+  actions.append(copyShop,copyWish,delBtn);
+
+  li.append(info,actions);
+  return li;
+}
+
+/* ======================
+Live Sync
+====================== */
+onSnapshot(listRef,(snap)=>{
+  list.innerHTML="";
+  snap.forEach(d => list.appendChild(
+    renderItem(d.data(),d.id,"shoppingList")
+  ));
 });
 
-onSnapshot(wishRef,(snapshot)=>{
-  wishList.innerHTML = "";
-  snapshot.forEach((itemDoc)=>{
-    wishList.appendChild(
-      createItem(itemDoc.data(),itemDoc.id,"wishList")
-    );
-  });
+onSnapshot(wishRef,(snap)=>{
+  wishList.innerHTML="";
+  snap.forEach(d => wishList.appendChild(
+    renderItem(d.data(),d.id,"wishList")
+  ));
+});
+
+onSnapshot(inventoryRef,(snap)=>{
+  inventoryList.innerHTML="";
+  snap.forEach(d => inventoryList.appendChild(
+    renderInventoryItem(d.data(),d.id)
+  ));
 });
 </script>
 
 </body>
 </html>
-```
