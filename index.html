@@ -1,3 +1,4 @@
+```html id="m8r2ke"
 <!DOCTYPE html>
 <html lang="de">
 <head>
@@ -6,160 +7,138 @@
 <title>Einkaufsliste Holzwerkstatt</title>
 
 <style>
-body {
-  font-family: Arial, sans-serif;
-  max-width: 700px;
-  margin: 40px auto;
-  padding: 20px;
+body{
+  font-family:Arial,sans-serif;
+  max-width:700px;
+  margin:40px auto;
+  padding:20px;
 }
 
-.form-group {
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
-  margin-bottom: 20px;
+.form-group{
+  display:flex;
+  flex-direction:column;
+  gap:8px;
+  margin-bottom:20px;
 }
 
-input, select, button {
-  padding: 10px;
-  width: 100%;
-  font-size: 16px;
-  box-sizing: border-box;
+input,select,button{
+  padding:10px;
+  width:100%;
+  font-size:16px;
+  box-sizing:border-box;
 }
 
-button {
-  background: #007bff;
-  color: white;
-  border: none;
-  cursor: pointer;
+button{
+  background:#007bff;
+  color:#fff;
+  border:none;
+  cursor:pointer;
 }
 
-button:hover {
-  background: #0056b3;
+button:hover{ background:#0056b3; }
+
+button.delete{
+  width:auto;
+  background:#ff4d4d;
+  padding:6px 10px;
 }
 
-button.delete {
-  width: auto;
-  background: #ff4d4d;
-  padding: 6px 10px;
+button.delete:hover{ background:#cc0000; }
+
+button.edit{
+  width:auto;
+  background:#28a745;
+  padding:6px 10px;
 }
 
-button.delete:hover {
-  background: #cc0000;
+button.edit:hover{ background:#1e7e34; }
+
+h1,h2{
+  border-bottom:2px solid #333;
+  padding-bottom:5px;
+  margin-top:35px;
 }
 
-button.edit {
-  width: auto;
-  background: #28a745;
-  padding: 6px 10px;
+ul{
+  list-style:none;
+  padding:0;
 }
 
-button.edit:hover {
-  background: #1e7e34;
+li{
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
+  gap:15px;
+  padding:12px;
+  border-bottom:1px solid #ddd;
 }
 
-h1, h2 {
-  border-bottom: 2px solid #333;
-  padding-bottom: 5px;
-  margin-top: 35px;
+.item-info{
+  display:flex;
+  flex-direction:column;
+  gap:4px;
+  flex:1;
 }
 
-ul {
-  list-style: none;
-  padding: 0;
+.item-name{
+  font-weight:bold;
 }
 
-li {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  gap: 15px;
-  padding: 12px;
-  border-bottom: 1px solid #ddd;
+.item-details,
+.item-meta{
+  font-size:14px;
+  color:#555;
 }
 
-.item-info {
-  display: flex;
-  flex-direction: column;
-  gap: 4px;
-  flex: 1;
+.item-details a{
+  color:#007bff;
+  text-decoration:none;
 }
 
-.item-name {
-  font-weight: bold;
+.priority{
+  font-size:13px;
+  font-weight:bold;
+  padding:4px 8px;
+  border-radius:8px;
+  width:fit-content;
 }
 
-.item-details {
-  font-size: 14px;
-  color: #555;
-}
-
-.item-details a {
-  color: #007bff;
-  text-decoration: none;
-}
-
-.priority {
-  font-size: 13px;
-  font-weight: bold;
-  padding: 4px 8px;
-  border-radius: 8px;
-  width: fit-content;
-}
-
-.green {
-  background: #d4edda;
-  color: #155724;
-}
-
-.yellow {
-  background: #fff3cd;
-  color: #856404;
-}
-
-.red {
-  background: #f8d7da;
-  color: #721c24;
-}
+.green{ background:#d4edda; color:#155724; }
+.yellow{ background:#fff3cd; color:#856404; }
+.red{ background:#f8d7da; color:#721c24; }
 
 /* Modal */
-.modal {
-  position: fixed;
-  inset: 0;
-  background: rgba(0,0,0,.55);
-  display: none;
-  justify-content: center;
-  align-items: center;
-  z-index: 999;
+.modal{
+  position:fixed;
+  inset:0;
+  background:rgba(0,0,0,.55);
+  display:none;
+  justify-content:center;
+  align-items:center;
+  z-index:999;
 }
 
-.modal-box {
-  background: white;
-  width: 95%;
-  max-width: 420px;
-  padding: 25px;
-  border-radius: 14px;
+.modal-box{
+  background:#fff;
+  width:95%;
+  max-width:420px;
+  padding:25px;
+  border-radius:14px;
 }
 
-.modal-box h3 {
-  margin-top: 0;
+.modal-buttons{
+  display:flex;
+  gap:10px;
 }
 
-.modal-buttons {
-  display: flex;
-  gap: 10px;
+.modal-buttons button{ flex:1; }
+
+.cancel{
+  background:#888;
 }
 
-.modal-buttons button {
-  flex: 1;
-}
-
-.cancel {
-  background: #888;
-}
-
-.cancel:hover {
-  background: #666;
+.cancel:hover{
+  background:#666;
 }
 </style>
 </head>
@@ -170,6 +149,7 @@ li {
 
 <!-- Einkaufsliste -->
 <div class="form-group">
+  <input type="text" id="itemUserInput" placeholder="Dein Name..." />
   <input type="text" id="itemInput" placeholder="Artikel eingeben..." />
   <input type="text" id="itemLinkInput" placeholder="Link (optional)" />
   <input type="text" id="itemPriceInput" placeholder="Preis (optional)" />
@@ -191,6 +171,7 @@ li {
 <h2>🎁 Wunschliste</h2>
 
 <div class="form-group">
+  <input type="text" id="wishUserInput" placeholder="Dein Name..." />
   <input type="text" id="wishNameInput" placeholder="Wunschartikel..." />
   <input type="text" id="wishLinkInput" placeholder="Link (optional)" />
   <input type="text" id="wishPriceInput" placeholder="Preis (optional)" />
@@ -212,7 +193,8 @@ li {
     <h3>✏️ Eintrag bearbeiten</h3>
 
     <div class="form-group">
-      <input type="text" id="editName" placeholder="Name">
+      <input type="text" id="editUser" placeholder="Name">
+      <input type="text" id="editName" placeholder="Artikel">
       <input type="text" id="editLink" placeholder="Link">
       <input type="text" id="editPrice" placeholder="Preis">
 
@@ -261,25 +243,36 @@ const wishRef = collection(db, "wishList");
 let currentEditId = null;
 let currentCollection = null;
 
-function fixUrl(url) {
-  if (!url) return "";
-  if (!url.startsWith("http://") && !url.startsWith("https://")) {
+/* Helpers */
+function fixUrl(url){
+  if(!url) return "";
+  if(!url.startsWith("http://") && !url.startsWith("https://")){
     return "https://" + url;
   }
   return url;
 }
 
-/* Einkaufsliste speichern */
-window.addItem = async function () {
+function formatDate(timestamp){
+  if(!timestamp) return "";
+  return new Date(timestamp).toLocaleString("de-DE");
+}
+
+/* Einkaufsliste */
+window.addItem = async function(){
+  const user = document.getElementById("itemUserInput").value.trim();
   const name = document.getElementById("itemInput").value.trim();
   const link = fixUrl(document.getElementById("itemLinkInput").value.trim());
   const price = document.getElementById("itemPriceInput").value.trim();
   const priority = document.getElementById("itemPriorityInput").value;
 
-  if (!name) return;
+  if(!name) return;
 
-  await addDoc(listRef, {
-    name, link, price, priority,
+  await addDoc(listRef,{
+    user: user || "Unbekannt",
+    name,
+    link,
+    price,
+    priority,
     createdAt: Date.now()
   });
 
@@ -288,17 +281,22 @@ window.addItem = async function () {
   document.getElementById("itemPriceInput").value = "";
 };
 
-/* Wunschliste speichern */
-window.addWishItem = async function () {
+/* Wunschliste */
+window.addWishItem = async function(){
+  const user = document.getElementById("wishUserInput").value.trim();
   const name = document.getElementById("wishNameInput").value.trim();
   const link = fixUrl(document.getElementById("wishLinkInput").value.trim());
   const price = document.getElementById("wishPriceInput").value.trim();
   const priority = document.getElementById("wishPriorityInput").value;
 
-  if (!name) return;
+  if(!name) return;
 
-  await addDoc(wishRef, {
-    name, link, price, priority,
+  await addDoc(wishRef,{
+    user: user || "Unbekannt",
+    name,
+    link,
+    price,
+    priority,
     createdAt: Date.now()
   });
 
@@ -307,11 +305,12 @@ window.addWishItem = async function () {
   document.getElementById("wishPriceInput").value = "";
 };
 
-/* Modal öffnen */
-window.openEditModal = function(data, id, collectionName) {
+/* Modal */
+window.openEditModal = function(data,id,collectionName){
   currentEditId = id;
   currentCollection = collectionName;
 
+  document.getElementById("editUser").value = data.user || "";
   document.getElementById("editName").value = data.name || "";
   document.getElementById("editLink").value = data.link || "";
   document.getElementById("editPrice").value = data.price || "";
@@ -320,29 +319,32 @@ window.openEditModal = function(data, id, collectionName) {
   document.getElementById("editModal").style.display = "flex";
 };
 
-/* Modal schließen */
-window.closeModal = function() {
+window.closeModal = function(){
   document.getElementById("editModal").style.display = "none";
 };
 
-/* Änderungen speichern */
-window.saveEdit = async function() {
+window.saveEdit = async function(){
+  const user = document.getElementById("editUser").value.trim();
   const name = document.getElementById("editName").value.trim();
   const link = fixUrl(document.getElementById("editLink").value.trim());
   const price = document.getElementById("editPrice").value.trim();
   const priority = document.getElementById("editPriority").value;
 
-  if (!name) return;
+  if(!name) return;
 
-  await updateDoc(doc(db, currentCollection, currentEditId), {
-    name, link, price, priority
+  await updateDoc(doc(db,currentCollection,currentEditId),{
+    user: user || "Unbekannt",
+    name,
+    link,
+    price,
+    priority
   });
 
   closeModal();
 };
 
-/* Darstellung */
-function createItem(docData, id, collectionName) {
+/* Anzeige */
+function createItem(docData,id,collectionName){
   const li = document.createElement("li");
 
   const info = document.createElement("div");
@@ -354,24 +356,33 @@ function createItem(docData, id, collectionName) {
   info.appendChild(name);
 
   const prio = document.createElement("span");
-  prio.className = "priority " + docData.priority;
+  prio.className = "priority " + (docData.priority || "green");
   prio.textContent =
-    docData.priority === "green" ? "🟢 Grün" :
     docData.priority === "yellow" ? "🟡 Gelb" :
-    "🔴 Rot";
+    docData.priority === "red" ? "🔴 Rot" :
+    "🟢 Grün";
 
   info.appendChild(prio);
+
+  const meta = document.createElement("span");
+  meta.className = "item-meta";
+  meta.textContent =
+    "👤 " + (docData.user || "Unbekannt") +
+    " | 📅 " + formatDate(docData.createdAt);
+
+  info.appendChild(meta);
 
   const details = document.createElement("span");
   details.className = "item-details";
 
   let txt = [];
-  if (docData.price) txt.push("💰 " + docData.price);
+
+  if(docData.price) txt.push("💰 " + docData.price);
 
   details.innerHTML = txt.join(" | ");
 
-  if (docData.link) {
-    if (txt.length > 0) details.innerHTML += " | ";
+  if(docData.link){
+    if(txt.length > 0) details.innerHTML += " | ";
 
     const a = document.createElement("a");
     a.href = docData.link;
@@ -381,59 +392,54 @@ function createItem(docData, id, collectionName) {
     details.appendChild(a);
   }
 
-  if (docData.price || docData.link) {
+  if(docData.price || docData.link){
     info.appendChild(details);
   }
 
-  const buttonWrap = document.createElement("div");
-  buttonWrap.style.display = "flex";
-  buttonWrap.style.gap = "8px";
+  const buttons = document.createElement("div");
+  buttons.style.display = "flex";
+  buttons.style.gap = "8px";
 
   const editBtn = document.createElement("button");
   editBtn.className = "edit";
   editBtn.textContent = "✏️";
+  editBtn.onclick = () => openEditModal(docData,id,collectionName);
 
-  editBtn.onclick = () => {
-    openEditModal(docData, id, collectionName);
+  const delBtn = document.createElement("button");
+  delBtn.className = "delete";
+  delBtn.textContent = "X";
+  delBtn.onclick = async () => {
+    await deleteDoc(doc(db,collectionName,id));
   };
 
-  const deleteBtn = document.createElement("button");
-  deleteBtn.className = "delete";
-  deleteBtn.textContent = "X";
-
-  deleteBtn.onclick = async () => {
-    await deleteDoc(doc(db, collectionName, id));
-  };
-
-  buttonWrap.appendChild(editBtn);
-  buttonWrap.appendChild(deleteBtn);
+  buttons.appendChild(editBtn);
+  buttons.appendChild(delBtn);
 
   li.appendChild(info);
-  li.appendChild(buttonWrap);
+  li.appendChild(buttons);
 
   return li;
 }
 
-/* Live Sync Einkaufsliste */
-onSnapshot(listRef, (snapshot) => {
+/* Live Sync */
+onSnapshot(listRef,(snapshot)=>{
   const list = document.getElementById("list");
   list.innerHTML = "";
 
-  snapshot.forEach((itemDoc) => {
+  snapshot.forEach((itemDoc)=>{
     list.appendChild(
-      createItem(itemDoc.data(), itemDoc.id, "shoppingList")
+      createItem(itemDoc.data(),itemDoc.id,"shoppingList")
     );
   });
 });
 
-/* Live Sync Wunschliste */
-onSnapshot(wishRef, (snapshot) => {
+onSnapshot(wishRef,(snapshot)=>{
   const list = document.getElementById("wishList");
   list.innerHTML = "";
 
-  snapshot.forEach((itemDoc) => {
+  snapshot.forEach((itemDoc)=>{
     list.appendChild(
-      createItem(itemDoc.data(), itemDoc.id, "wishList")
+      createItem(itemDoc.data(),itemDoc.id,"wishList")
     );
   });
 });
@@ -441,3 +447,4 @@ onSnapshot(wishRef, (snapshot) => {
 
 </body>
 </html>
+```
