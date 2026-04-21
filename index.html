@@ -23,7 +23,6 @@ body{
   width:auto;
   padding:10px 16px;
   background:#e9ecef;
-  color:#222;
 }
 
 .tab-btn.active{
@@ -31,13 +30,8 @@ body{
   color:#fff;
 }
 
-.tab-content{
-  display:none;
-}
-
-.tab-content.active{
-  display:block;
-}
+.tab-content{ display:none; }
+.tab-content.active{ display:block; }
 
 .form-group{
   display:flex;
@@ -67,53 +61,16 @@ button{
 
 button:hover{ background:#0056b3; }
 
-button.delete{
-  width:auto;
-  background:#ff4d4d;
-  padding:6px 10px;
-}
+button.delete{ background:#ff4d4d; }
+button.move{ background:#ff9800; }
+button.copy{ background:#6f42c1; }
+button.edit{ background:#28a745; }
 
-button.delete:hover{ background:#cc0000; }
-
-button.edit{
-  width:auto;
-  background:#28a745;
-  padding:6px 10px;
-}
-
-button.edit:hover{ background:#1e7e34; }
-
-button.move{
-  width:auto;
-  background:#ff9800;
-  padding:6px 10px;
-}
-
-button.move:hover{ background:#d67f00; }
-
-button.copy{
-  width:auto;
-  background:#6f42c1;
-  padding:6px 10px;
-}
-
-button.copy:hover{ background:#59359c; }
-
-h1,h2{
-  border-bottom:2px solid #333;
-  padding-bottom:5px;
-  margin-top:25px;
-}
-
-ul{
-  list-style:none;
-  padding:0;
-}
+ul{ list-style:none; padding:0; }
 
 li{
   display:flex;
   justify-content:space-between;
-  align-items:center;
   gap:15px;
   padding:12px;
   border-bottom:1px solid #ddd;
@@ -124,19 +81,6 @@ li{
   flex-direction:column;
   gap:4px;
   flex:1;
-}
-
-.item-name{ font-weight:bold; }
-
-.item-details,
-.item-meta{
-  font-size:14px;
-  color:#555;
-}
-
-.item-details a{
-  color:#007bff;
-  text-decoration:none;
 }
 
 .priority{
@@ -153,150 +97,77 @@ li{
 
 .actions{
   display:flex;
-  gap:8px;
+  gap:6px;
   flex-wrap:wrap;
-}
-
-/* Modal */
-.modal{
-  position:fixed;
-  inset:0;
-  background:rgba(0,0,0,.55);
-  display:none;
-  justify-content:center;
-  align-items:center;
-  z-index:999;
-}
-
-.modal-box{
-  background:#fff;
-  width:95%;
-  max-width:420px;
-  padding:25px;
-  border-radius:14px;
-}
-
-.modal-buttons{
-  display:flex;
-  gap:10px;
-}
-
-.modal-buttons button{
-  flex:1;
-}
-
-.cancel{
-  background:#888;
-}
-
-.cancel:hover{
-  background:#666;
 }
 </style>
 </head>
 
 <body>
 
-<h1>🛒 Einkaufsliste Holzwerkstatt</h1>
+<h1>🛒 Einkaufssystem Holzwerkstatt</h1>
 
 <div class="tabs">
-  <button class="tab-btn active" onclick="showTab('listsTab', this)">Listen</button>
-  <button class="tab-btn" onclick="showTab('inventoryTab', this)">Inventar</button>
+  <button class="tab-btn active" onclick="switchTab('lists')">Listen</button>
+  <button class="tab-btn" onclick="switchTab('inventory')">Inventar</button>
 </div>
 
-<!-- ===============================
-TAB 1 LISTEN
-=============================== -->
-<div id="listsTab" class="tab-content active">
+<!-- LISTEN -->
+<div id="lists" class="tab-content active">
 
-<!-- Einkaufsliste -->
+<h2>Einkaufsliste</h2>
+
 <div class="form-group">
-  <h2>Einkaufsliste</h2>
+  <input id="itemName" placeholder="Artikel" />
+  <input id="itemLink" placeholder="Link (optional)" />
+  <input id="itemPrice" placeholder="Preis (optional)" />
 
-  <input type="text" id="itemInput" placeholder="Artikel eingeben..." />
-  <input type="text" id="itemLinkInput" placeholder="Link (optional)" />
-  <input type="text" id="itemPriceInput" placeholder="Preis (optional)" />
-
-  <label for="itemPriorityInput">Priorität</label>
-  <select id="itemPriorityInput">
+  <label>Priorität</label>
+  <select id="itemPriority">
     <option value="green">🟢 Grün</option>
     <option value="yellow">🟡 Gelb</option>
     <option value="red">🔴 Rot</option>
   </select>
 
-  <input type="text" id="itemUserInput" placeholder="Name" />
-
+  <input id="itemUser" placeholder="Name" />
   <button onclick="addItem()">Hinzufügen</button>
 </div>
 
-<ul id="list"></ul>
+<ul id="shoppingList"></ul>
 
 <hr>
 
-<!-- Wunschliste -->
+<h2>Wunschliste</h2>
+
 <div class="form-group">
-  <h2>Wunschliste</h2>
+  <input id="wishName" placeholder="Artikel" />
+  <input id="wishLink" placeholder="Link (optional)" />
+  <input id="wishPrice" placeholder="Preis (optional)" />
 
-  <input type="text" id="wishNameInput" placeholder="Wunschartikel..." />
-  <input type="text" id="wishLinkInput" placeholder="Link (optional)" />
-  <input type="text" id="wishPriceInput" placeholder="Preis (optional)" />
-
-  <label for="wishPriorityInput">Priorität</label>
-  <select id="wishPriorityInput">
+  <label>Priorität</label>
+  <select id="wishPriority">
     <option value="green">🟢 Grün</option>
     <option value="yellow">🟡 Gelb</option>
     <option value="red">🔴 Rot</option>
   </select>
 
-  <input type="text" id="wishUserInput" placeholder="Name" />
-
-  <button onclick="addWishItem()">Wunsch hinzufügen</button>
+  <input id="wishUser" placeholder="Name" />
+  <button onclick="addWish()">Hinzufügen</button>
 </div>
 
 <ul id="wishList"></ul>
 
 </div>
 
-<!-- ===============================
-TAB 2 INVENTAR
-=============================== -->
-<div id="inventoryTab" class="tab-content">
-  <h2>📦 Inventar</h2>
-  <ul id="inventoryList"></ul>
-</div>
-
-<!-- ===============================
-EDIT MODAL
-=============================== -->
-<div id="editModal" class="modal">
-  <div class="modal-box">
-    <h3>✏️ Eintrag bearbeiten</h3>
-
-    <div class="form-group">
-      <input type="text" id="editName" placeholder="Artikel">
-      <input type="text" id="editLink" placeholder="Link">
-      <input type="text" id="editPrice" placeholder="Preis">
-
-      <label for="editPriority">Priorität</label>
-      <select id="editPriority">
-        <option value="green">🟢 Grün</option>
-        <option value="yellow">🟡 Gelb</option>
-        <option value="red">🔴 Rot</option>
-      </select>
-
-      <input type="text" id="editUser" placeholder="Name">
-    </div>
-
-    <div class="modal-buttons">
-      <button onclick="saveEdit()">💾 Speichern</button>
-      <button onclick="closeModal()" class="cancel">Abbrechen</button>
-    </div>
-  </div>
+<!-- INVENTAR -->
+<div id="inventory" class="tab-content">
+<h2>📦 Inventar</h2>
+<ul id="inventoryList"></ul>
 </div>
 
 <script type="module">
-import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
 
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
 import {
   getFirestore,
   collection,
@@ -304,302 +175,207 @@ import {
   deleteDoc,
   doc,
   onSnapshot,
-  updateDoc,
-  getDocs,
-  query,
-  where
+  updateDoc
 } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
-const firebaseConfig = {
+const app = initializeApp({
   apiKey: "DEIN_KEY",
   authDomain: "DEIN_PROJEKT.firebaseapp.com",
-  projectId: "DEIN_PROJEKT",
-  storageBucket: "DEIN_PROJEKT.appspot.com",
-  messagingSenderId: "123456",
-  appId: "123456"
-};
+  projectId: "DEIN_PROJEKT"
+});
 
-const app = initializeApp(firebaseConfig);
 const db = getFirestore(app);
 
-const listRef = collection(db,"shoppingList");
+const shoppingRef = collection(db,"shoppingList");
 const wishRef = collection(db,"wishList");
 const inventoryRef = collection(db,"inventory");
 
-let currentEditId = null;
-let currentCollection = null;
-
-/* ======================
-Helpers
-====================== */
-function fixUrl(url){
-  if(!url) return "";
-  if(!url.startsWith("http://") && !url.startsWith("https://")){
-    return "https://" + url;
-  }
-  return url;
+/* =========================
+   NORMALIZER (WICHTIG!)
+========================= */
+function normalize(data){
+  return {
+    name: data.name || "",
+    link: data.link || "",
+    price: data.price || "",
+    priority: data.priority || "green",
+    user: data.user || "Unbekannt",
+    createdAt: data.createdAt || Date.now()
+  };
 }
 
-function formatDate(timestamp){
-  if(!timestamp) return "";
-  return new Date(timestamp).toLocaleString("de-DE");
-}
-
-window.showTab = function(id, btn){
-  document.querySelectorAll(".tab-content").forEach(t => t.classList.remove("active"));
-  document.querySelectorAll(".tab-btn").forEach(b => b.classList.remove("active"));
+/* =========================
+   TAB SWITCH
+========================= */
+window.switchTab = function(id){
+  document.querySelectorAll(".tab-content").forEach(e=>e.classList.remove("active"));
+  document.querySelectorAll(".tab-btn").forEach(e=>e.classList.remove("active"));
 
   document.getElementById(id).classList.add("active");
-  btn.classList.add("active");
+  event.target.classList.add("active");
 };
 
+/* =========================
+   INVENTAR SAVE (deduped)
+========================= */
 async function saveToInventory(data){
-  const q = query(inventoryRef, where("name","==",data.name));
-  const snap = await getDocs(q);
+  const item = normalize(data);
 
-  if(snap.empty){
-    await addDoc(inventoryRef,{
-      ...data,
-      inventorySavedAt: Date.now()
-    });
-  }
+  await addDoc(inventoryRef,{
+    ...item,
+    savedAt: Date.now()
+  });
 }
 
-/* ======================
-Add
-====================== */
+/* =========================
+   ADD
+========================= */
 window.addItem = async function(){
-  const data = {
-    name: itemInput.value.trim(),
-    link: fixUrl(itemLinkInput.value.trim()),
-    price: itemPriceInput.value.trim(),
-    priority: itemPriorityInput.value,
-    user: itemUserInput.value.trim(),
-    createdAt: Date.now()
-  };
+  const data = normalize({
+    name:itemName.value,
+    link:itemLink.value,
+    price:itemPrice.value,
+    priority:itemPriority.value,
+    user:itemUser.value
+  });
 
   if(!data.name || !data.user) return;
 
-  await addDoc(listRef,data);
+  await addDoc(shoppingRef,data);
   await saveToInventory(data);
 
-  itemInput.value="";
-  itemLinkInput.value="";
-  itemPriceInput.value="";
+  itemName.value="";
+  itemLink.value="";
+  itemPrice.value="";
 };
 
-window.addWishItem = async function(){
-  const data = {
-    name: wishNameInput.value.trim(),
-    link: fixUrl(wishLinkInput.value.trim()),
-    price: wishPriceInput.value.trim(),
-    priority: wishPriorityInput.value,
-    user: wishUserInput.value.trim(),
-    createdAt: Date.now()
-  };
+window.addWish = async function(){
+  const data = normalize({
+    name:wishName.value,
+    link:wishLink.value,
+    price:wishPrice.value,
+    priority:wishPriority.value,
+    user:wishUser.value
+  });
 
   if(!data.name || !data.user) return;
 
   await addDoc(wishRef,data);
   await saveToInventory(data);
 
-  wishNameInput.value="";
-  wishLinkInput.value="";
-  wishPriceInput.value="";
+  wishName.value="";
+  wishLink.value="";
+  wishPrice.value="";
 };
 
-/* ======================
-Edit
-====================== */
-window.openEditModal = function(data,id,collectionName){
-  currentEditId = id;
-  currentCollection = collectionName;
+/* =========================
+   MOVE (kein Duplikat!)
+========================= */
+async function move(data,id,from){
+  const target = from==="shoppingList" ? wishRef : shoppingRef;
 
-  editName.value = data.name || "";
-  editLink.value = data.link || "";
-  editPrice.value = data.price || "";
-  editPriority.value = data.priority || "green";
-  editUser.value = data.user || "";
-
-  editModal.style.display = "flex";
-};
-
-window.closeModal = function(){
-  editModal.style.display = "none";
-};
-
-window.saveEdit = async function(){
-  const data = {
-    name: editName.value.trim(),
-    link: fixUrl(editLink.value.trim()),
-    price: editPrice.value.trim(),
-    priority: editPriority.value,
-    user: editUser.value.trim()
-  };
-
-  if(!data.name || !data.user) return;
-
-  await updateDoc(doc(db,currentCollection,currentEditId),data);
-  await saveToInventory({...data, createdAt: Date.now()});
-
-  closeModal();
-};
-
-/* ======================
-Move
-====================== */
-async function moveItem(data,id,fromCollection){
-  const targetRef = fromCollection === "shoppingList" ? wishRef : listRef;
-
-  await addDoc(targetRef,{
-    ...data
-  });
-
-  await saveToInventory(data);
-
-  /* WICHTIG: aus alter Liste löschen */
-  await deleteDoc(doc(db,fromCollection,id));
+  await addDoc(target,normalize(data));
+  await deleteDoc(doc(db,from,id));
 }
 
-/* ======================
-Copy from inventory
-====================== */
-async function copyToList(data,target){
-  const targetRef = target === "shoppingList" ? listRef : wishRef;
-
-  await addDoc(targetRef,{
-    ...data,
-    createdAt: Date.now()
-  });
+/* =========================
+   COPY FROM INVENTORY
+========================= */
+async function copyTo(target,data){
+  const ref = target==="shoppingList" ? shoppingRef : wishRef;
+  await addDoc(ref,normalize(data));
 }
 
-/* ======================
-Render Normal Item
-====================== */
-function renderItem(docData,id,collectionName){
+/* =========================
+   RENDER ITEM
+========================= */
+function render(data,id,collection){
   const li = document.createElement("li");
 
   const info = document.createElement("div");
-  info.className = "item-info";
+  info.className="item-info";
 
-  info.innerHTML = `
-    <span class="item-name">${docData.name}</span>
-    <span class="priority ${docData.priority || "green"}">
-      ${docData.priority==="red"?"🔴 Rot":docData.priority==="yellow"?"🟡 Gelb":"🟢 Grün"}
+  info.innerHTML=`
+    <strong>${data.name}</strong>
+    <span class="priority ${data.priority}">
+      ${data.priority}
     </span>
+    <small>👤 ${data.user} | 📅 ${new Date(data.createdAt).toLocaleString()}</small>
   `;
 
-  if(docData.price || docData.link){
-    const details = document.createElement("span");
-    details.className = "item-details";
-
-    let txt = [];
-    if(docData.price) txt.push("💰 " + docData.price);
-
-    details.innerHTML = txt.join(" | ");
-
-    if(docData.link){
-      if(txt.length > 0) details.innerHTML += " | ";
-      const a = document.createElement("a");
-      a.href = docData.link;
-      a.target = "_blank";
-      a.textContent = "🔗 Link öffnen";
-      details.appendChild(a);
-    }
-
-    info.appendChild(details);
-  }
-
-  const meta = document.createElement("span");
-  meta.className = "item-meta";
-  meta.textContent = "📅 " + formatDate(docData.createdAt) + " | 👤 " + docData.user;
-  info.appendChild(meta);
-
   const actions = document.createElement("div");
-  actions.className = "actions";
-
-  const editBtn = document.createElement("button");
-  editBtn.className = "edit";
-  editBtn.textContent = "✏️";
-  editBtn.onclick = () => openEditModal(docData,id,collectionName);
+  actions.className="actions";
 
   const moveBtn = document.createElement("button");
-  moveBtn.className = "move";
-  moveBtn.textContent = collectionName==="shoppingList" ? "➡️ Wunsch" : "⬅️ Einkauf";
-  moveBtn.onclick = () => moveItem(docData,id,collectionName);
+  moveBtn.className="move";
+  moveBtn.textContent = collection==="shoppingList" ? "➡️ Wunsch" : "⬅️ Einkauf";
+  moveBtn.onclick=()=>move(data,id,collection);
 
-  const delBtn = document.createElement("button");
-  delBtn.className = "delete";
-  delBtn.textContent = "X";
-  delBtn.onclick = () => deleteDoc(doc(db,collectionName,id));
+  const del = document.createElement("button");
+  del.className="delete";
+  del.textContent="X";
+  del.onclick=()=>deleteDoc(doc(db,collection,id));
 
-  actions.append(editBtn,moveBtn,delBtn);
+  actions.append(moveBtn,del);
 
   li.append(info,actions);
   return li;
 }
 
-/* ======================
-Render Inventory Item
-====================== */
-function renderInventoryItem(docData,id){
-  const li = document.createElement("li");
+/* =========================
+   INVENTORY RENDER
+========================= */
+function renderInv(data,id){
+  const li=document.createElement("li");
 
-  const info = document.createElement("div");
-  info.className = "item-info";
-
-  info.innerHTML = `
-    <span class="item-name">${docData.name}</span>
-    <span class="item-meta">👤 ${docData.user} | 📅 ${formatDate(docData.createdAt)}</span>
+  const info=document.createElement("div");
+  info.innerHTML=`
+    <strong>${data.name}</strong>
+    <small>👤 ${data.user}</small>
   `;
 
-  const actions = document.createElement("div");
-  actions.className = "actions";
+  const actions=document.createElement("div");
+  actions.className="actions";
 
-  const copyShop = document.createElement("button");
-  copyShop.className = "copy";
-  copyShop.textContent = "🛒 Einkauf";
-  copyShop.onclick = () => copyToList(docData,"shoppingList");
+  const toShop=document.createElement("button");
+  toShop.className="copy";
+  toShop.textContent="🛒 Einkauf";
+  toShop.onclick=()=>copyTo("shoppingList",data);
 
-  const copyWish = document.createElement("button");
-  copyWish.className = "copy";
-  copyWish.textContent = "🎁 Wunsch";
-  copyWish.onclick = () => copyToList(docData,"wishList");
+  const toWish=document.createElement("button");
+  toWish.className="copy";
+  toWish.textContent="🎁 Wunsch";
+  toWish.onclick=()=>copyTo("wishList",data);
 
-  const delBtn = document.createElement("button");
-  delBtn.className = "delete";
-  delBtn.textContent = "X";
-  delBtn.onclick = () => deleteDoc(doc(db,"inventory",id));
+  const del=document.createElement("button");
+  del.className="delete";
+  del.textContent="X";
+  del.onclick=()=>deleteDoc(doc(db,"inventory",id));
 
-  actions.append(copyShop,copyWish,delBtn);
+  actions.append(toShop,toWish,del);
 
   li.append(info,actions);
   return li;
 }
 
-/* ======================
-Live Sync
-====================== */
-onSnapshot(listRef,(snap)=>{
-  list.innerHTML="";
-  snap.forEach(d => list.appendChild(
-    renderItem(d.data(),d.id,"shoppingList")
-  ));
+/* =========================
+   LIVE SYNC
+========================= */
+onSnapshot(shoppingRef,s=>{
+  shoppingList.innerHTML="";
+  s.forEach(d=>shoppingList.appendChild(render(d.data(),d.id,"shoppingList")));
 });
 
-onSnapshot(wishRef,(snap)=>{
+onSnapshot(wishRef,s=>{
   wishList.innerHTML="";
-  snap.forEach(d => wishList.appendChild(
-    renderItem(d.data(),d.id,"wishList")
-  ));
+  s.forEach(d=>wishList.appendChild(render(d.data(),d.id,"wishList")));
 });
 
-onSnapshot(inventoryRef,(snap)=>{
+onSnapshot(inventoryRef,s=>{
   inventoryList.innerHTML="";
-  snap.forEach(d => inventoryList.appendChild(
-    renderInventoryItem(d.data(),d.id)
-  ));
+  s.forEach(d=>inventoryList.appendChild(renderInv(d.data(),d.id)));
 });
+
 </script>
 
 </body>
