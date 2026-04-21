@@ -3,7 +3,8 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Gemeinsame Einkaufsliste</title>
+  <title>Einkaufsliste Cloud</title>
+
   <style>
     body {
       font-family: Arial, sans-serif;
@@ -11,77 +12,101 @@
       margin: 40px auto;
       padding: 20px;
     }
+
     input, button {
       padding: 10px;
       margin: 5px 0;
       width: 100%;
+      font-size: 16px;
     }
+
     ul {
-      padding-left: 20px;
+      padding-left: 0;
+      list-style: none;
     }
+
     li {
       display: flex;
       justify-content: space-between;
-      margin: 5px 0;
-      padding: 5px;
+      align-items: center;
+      padding: 10px;
       border-bottom: 1px solid #ddd;
     }
+
     button.delete {
       width: auto;
       background: red;
       color: white;
       border: none;
+      padding: 5px 10px;
       cursor: pointer;
     }
   </style>
 </head>
+
 <body>
 
-  <h1>🛒 Gemeinsame Einkaufsliste</h1>
+  <h1>🛒 Einkaufsliste (Cloud)</h1>
 
-  <input type="text" id="itemInput" placeholder="Artikel hinzufügen..." />
+  <input type="text" id="itemInput" placeholder="Artikel eingeben..." />
   <button onclick="addItem()">Hinzufügen</button>
 
   <ul id="list"></ul>
 
   <script type="module">
 
-    // 🔥 Firebase SDK
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
-    import { getFirestore, collection, addDoc, deleteDoc, doc, onSnapshot } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+    import {
+      getFirestore,
+      collection,
+      addDoc,
+      deleteDoc,
+      doc,
+      onSnapshot
+    } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
-    // ⚙️ DEINE FIREBASE KONFIGURATION HIER EINTRAGEN
+    console.log("SCRIPT START");
+
+    // 🔥 Firebase Config
     const firebaseConfig = {
       apiKey: "AIzaSyBP3oj8MkzyDxiFWygr7xPN4ixUbPoEVBM",
       authDomain: "einkaufsliste-138fd.firebaseapp.com",
       projectId: "einkaufsliste-138fd",
-      storageBucket: "einkaufsliste-138fd.firebasestorage.app",
+      storageBucket: "einkaufsliste-138fd.appspot.com",
       messagingSenderId: "892194095441",
       appId: "1:892194095441:web:0205864f9dcb1fb03bd370"
     };
 
-    // 🚀 Firebase starten
+    // 🚀 Init Firebase
     const app = initializeApp(firebaseConfig);
     const db = getFirestore(app);
 
+    console.log("Firebase init done");
+
     const listRef = collection(db, "shoppingList");
 
-    // ➕ Item hinzufügen
+    // ➕ Add Item
     window.addItem = async function () {
       const input = document.getElementById("itemInput");
       const value = input.value.trim();
 
       if (!value) return;
 
-      await addDoc(listRef, {
-        name: value,
-        createdAt: Date.now()
-      });
+      try {
+        await addDoc(listRef, {
+          name: value,
+          createdAt: Date.now()
+        });
 
-      input.value = "";
+        input.value = "";
+        console.log("Item gespeichert:", value);
+
+      } catch (err) {
+        console.error("Fehler beim Speichern:", err);
+      }
     };
 
-    // 📡 Echtzeit Listener (alle Nutzer sehen Updates sofort)
+    // 📡 Live Sync
     onSnapshot(listRef, (snapshot) => {
       const list = document.getElementById("list");
       list.innerHTML = "";
@@ -95,8 +120,9 @@
         span.textContent = data.name;
 
         const btn = document.createElement("button");
-        btn.textContent = "Löschen";
+        btn.textContent = "X";
         btn.className = "delete";
+
         btn.onclick = async () => {
           await deleteDoc(doc(db, "shoppingList", itemDoc.id));
         };
@@ -105,6 +131,8 @@
         li.appendChild(btn);
         list.appendChild(li);
       });
+
+      console.log("Liste aktualisiert:", snapshot.size);
     });
 
   </script>
