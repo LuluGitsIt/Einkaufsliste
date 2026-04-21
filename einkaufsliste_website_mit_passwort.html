@@ -1,0 +1,106 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Einkaufsliste</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      max-width: 600px;
+      margin: 40px auto;
+      padding: 20px;
+    }
+    .hidden { display: none; }
+    input, button {
+      padding: 10px;
+      margin: 5px 0;
+      width: 100%;
+    }
+    ul {
+      padding-left: 20px;
+    }
+    li {
+      margin: 5px 0;
+    }
+  </style>
+</head>
+<body>
+
+  <h1>Einkaufsliste</h1>
+
+  <div id="loginBox">
+    <p>Bitte Passwort eingeben:</p>
+    <input type="password" id="passwordInput" placeholder="Passwort" />
+    <button onclick="login()">Einloggen</button>
+    <p id="error" style="color:red;"></p>
+  </div>
+
+  <div id="app" class="hidden">
+    <h2>Meine Liste</h2>
+
+    <input type="text" id="itemInput" placeholder="Artikel hinzufügen" />
+    <button onclick="addItem()">Hinzufügen</button>
+
+    <ul id="list"></ul>
+  </div>
+
+  <script>
+    const PASSWORD = "1234"; // <- hier dein Passwort ändern
+
+    function login() {
+      const input = document.getElementById("passwordInput").value;
+      const error = document.getElementById("error");
+
+      if (input === PASSWORD) {
+        document.getElementById("loginBox").classList.add("hidden");
+        document.getElementById("app").classList.remove("hidden");
+        loadList();
+      } else {
+        error.textContent = "Falsches Passwort!";
+      }
+    }
+
+    function addItem() {
+      const input = document.getElementById("itemInput");
+      const value = input.value.trim();
+      if (!value) return;
+
+      let items = JSON.parse(localStorage.getItem("shoppingList") || "[]");
+      items.push(value);
+      localStorage.setItem("shoppingList", JSON.stringify(items));
+
+      input.value = "";
+      loadList();
+    }
+
+    function loadList() {
+      const list = document.getElementById("list");
+      list.innerHTML = "";
+
+      let items = JSON.parse(localStorage.getItem("shoppingList") || "[]");
+
+      items.forEach((item, index) => {
+        const li = document.createElement("li");
+        li.textContent = item;
+
+        const btn = document.createElement("button");
+        btn.textContent = "Löschen";
+        btn.style.marginLeft = "10px";
+        btn.onclick = () => deleteItem(index);
+
+        li.appendChild(btn);
+        list.appendChild(li);
+      });
+    }
+
+    function deleteItem(index) {
+      let items = JSON.parse(localStorage.getItem("shoppingList") || "[]");
+      items.splice(index, 1);
+      localStorage.setItem("shoppingList", JSON.stringify(items));
+      loadList();
+    }
+  </script>
+
+</body>
+</html>
