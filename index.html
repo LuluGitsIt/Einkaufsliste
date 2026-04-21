@@ -13,12 +13,39 @@
       padding: 20px;
     }
 
+    .form-group {
+      display: flex;
+      flex-direction: column;
+      gap: 5px;
+      margin-bottom: 15px;
+    }
+
     input, button {
       padding: 10px;
-      margin: 5px 0;
       width: 100%;
       font-size: 16px;
+      box-sizing: border-box;
     }
+
+    button {
+      background: #007bff;
+      color: white;
+      border: none;
+      cursor: pointer;
+      margin-top: 5px;
+    }
+
+    button:hover {
+      background: #0056b3;
+    }
+
+    h1, h2 {
+      border-bottom: 2px solid #333;
+      padding-bottom: 5px;
+      margin-top: 40px;
+    }
+
+    h1 { margin-top: 0; }
 
     ul {
       padding-left: 0;
@@ -33,13 +60,37 @@
       border-bottom: 1px solid #ddd;
     }
 
+    .item-info {
+      display: flex;
+      flex-direction: column;
+      gap: 2px;
+    }
+
+    .item-name {
+      font-weight: bold;
+    }
+
+    .item-details {
+      font-size: 14px;
+      color: #555;
+    }
+
+    .item-details a {
+      color: #007bff;
+      text-decoration: none;
+    }
+
     button.delete {
       width: auto;
-      background: red;
+      background: #ff4d4d;
       color: white;
       border: none;
       padding: 5px 10px;
       cursor: pointer;
+    }
+
+    button.delete:hover {
+      background: #cc0000;
     }
   </style>
 </head>
@@ -48,10 +99,26 @@
 
   <h1>🛒 Einkaufsliste Holzwerkstatt</h1>
 
-  <input type="text" id="itemInput" placeholder="Artikel eingeben..." />
-  <button onclick="addItem()">Hinzufügen</button>
+  <div class="form-group">
+    <input type="text" id="itemInput" placeholder="Artikel eingeben..." />
+    <button onclick="addItem()">Hinzufügen</button>
+  </div>
 
   <ul id="list"></ul>
+
+  <hr />
+
+  <!-- ✨ Wunschliste Sektion -->
+  <h2>🎁 Wunschliste</h2>
+
+  <div class="form-group">
+    <input type="text" id="wishNameInput" placeholder="Wunsch-Artikel eingeben..." />
+    <input type="text" id="wishLinkInput" placeholder="Link hinzufügen (Optional)..." />
+    <input type="text" id="wishPriceInput" placeholder="Preis eingeben (Optional)..." />
+    <button onclick="addWishItem()">Wunsch hinzufügen</button>
+  </div>
+
+  <ul id="wishList"></ul>
 
   <script type="module">
 
@@ -83,9 +150,11 @@
 
     console.log("Firebase init done");
 
+    // 📌 Referenzen für beide Collections
     const listRef = collection(db, "shoppingList");
+    const wishRef = collection(db, "wishList");
 
-    // ➕ Add Item
+    // ➕ Add Item (Einkaufsliste)
     window.addItem = async function () {
       const input = document.getElementById("itemInput");
       const value = input.value.trim();
@@ -99,24 +168,60 @@
         });
 
         input.value = "";
-        console.log("Item gespeichert:", value);
+        console.log("Einkaufsartikel gespeichert:", value);
 
       } catch (err) {
         console.error("Fehler beim Speichern:", err);
       }
     };
 
-    // 📡 Live Sync
+    // ➕ Add Wish Item (Wunschliste)
+    window.addWishItem = async function () {
+      const nameInput = document.getElementById("wishNameInput");
+      const linkInput = document.getElementById("wishLinkInput");
+      const priceInput = document.getElementById("wishPriceInput");
+
+      const nameValue = nameInput.value.trim();
+      let linkValue = linkInput.value.trim();
+      const priceValue = priceInput.value.trim();
+
+      if (!nameValue) return;
+
+      // URL Validierung: Automatisch http:// hinzufügen falls vergessen
+      if (linkValue && !linkValue.startsWith('http://') && !linkValue.startsWith('https://')) {
+        linkValue = 'https://' + linkValue;
+      }
+
+      try {
+        await addDoc(wishRef, {
+          name: nameValue,
+          link: linkValue || "",
+          price: priceValue || "",
+          createdAt: Date.now()
+        });
+
+        // Felder leeren
+        nameInput.value = "";
+        linkInput.value = "";
+        priceInput.value = "";
+        console.log("Wunsch gespeichert:", nameValue);
+
+      } catch (err) {
+        console.error("Fehler beim Speichern des Wunsches:", err);
+      }
+    };
+
+    // 📡 Live Sync - Einkaufsliste
     onSnapshot(listRef, (snapshot) => {
       const list = document.getElementById("list");
       list.innerHTML = "";
 
       snapshot.forEach((itemDoc) => {
         const data = itemDoc.data();
-
         const li = document.createElement("li");
 
         const span = document.createElement("span");
+        span.className = "item-name";
         span.textContent = data.name;
 
         const btn = document.createElement("button");
@@ -131,8 +236,67 @@
         li.appendChild(btn);
         list.appendChild(li);
       });
+    });
 
-      console.log("Liste aktualisiert:", snapshot.size);
+    // 📡 Live Sync - Wunschliste
+    onSnapshot(wishRef, (snapshot) => {
+      const wishList = document.getElementById("wishList");
+      wishList.innerHTML = "";
+
+      snapshot.forEach((itemDoc) => {
+        const data = itemDoc.data();
+        const li = document.createElement("li");
+
+        // Container für die Text-Infos
+        const infoDiv = document.createElement("div");
+        infoDiv.className = "item-info";
+
+        const nameSpan = document.createElement("span");
+        nameSpan.className = "item-name";
+        nameSpan.textContent = data.name;
+        infoDiv.appendChild(nameSpan);
+
+        // Details (Preis & Link)
+        const detailsSpan = document.createElement("span");
+        detailsSpan.className = "item-details";
+
+        let detailsArray = [];
+        
+        if (data.price) {
+          detailsArray.push(`💰 Preis: ${data.price}`);
+        }
+
+        detailsSpan.innerHTML = detailsArray.join(" | ");
+
+        // Falls ein Link existiert, klickbar machen
+        if (data.link) {
+          if (detailsArray.length > 0) detailsSpan.innerHTML += " | ";
+          
+          const a = document.createElement("a");
+          a.href = data.link;
+          a.target = "_blank";
+          a.rel = "noopener noreferrer";
+          a.textContent = "🔗 Link öffnen";
+          detailsSpan.appendChild(a);
+        }
+
+        if (data.price || data.link) {
+          infoDiv.appendChild(detailsSpan);
+        }
+
+        // Delete Button
+        const btn = document.createElement("button");
+        btn.textContent = "X";
+        btn.className = "delete";
+
+        btn.onclick = async () => {
+          await deleteDoc(doc(db, "wishList", itemDoc.id));
+        };
+
+        li.appendChild(infoDiv);
+        li.appendChild(btn);
+        wishList.appendChild(li);
+      });
     });
 
   </script>
