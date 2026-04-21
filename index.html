@@ -1,3 +1,4 @@
+```html id="s3n7qd"
 <!DOCTYPE html>
 <html lang="de">
 <head>
@@ -20,6 +21,12 @@ body{
   margin-bottom:20px;
 }
 
+label{
+  font-weight:bold;
+  font-size:14px;
+  margin-top:4px;
+}
+
 input,select,button{
   padding:10px;
   width:100%;
@@ -34,9 +41,7 @@ button{
   cursor:pointer;
 }
 
-button:hover{
-  background:#0056b3;
-}
+button:hover{ background:#0056b3; }
 
 button.delete{
   width:auto;
@@ -44,9 +49,7 @@ button.delete{
   padding:6px 10px;
 }
 
-button.delete:hover{
-  background:#cc0000;
-}
+button.delete:hover{ background:#cc0000; }
 
 button.edit{
   width:auto;
@@ -54,9 +57,15 @@ button.edit{
   padding:6px 10px;
 }
 
-button.edit:hover{
-  background:#1e7e34;
+button.edit:hover{ background:#1e7e34; }
+
+button.move{
+  width:auto;
+  background:#ff9800;
+  padding:6px 10px;
 }
+
+button.move:hover{ background:#d67f00; }
 
 h1,h2{
   border-bottom:2px solid #333;
@@ -85,9 +94,7 @@ li{
   flex:1;
 }
 
-.item-name{
-  font-weight:bold;
-}
+.item-name{ font-weight:bold; }
 
 .item-details,
 .item-meta{
@@ -108,20 +115,9 @@ li{
   width:fit-content;
 }
 
-.green{
-  background:#d4edda;
-  color:#155724;
-}
-
-.yellow{
-  background:#fff3cd;
-  color:#856404;
-}
-
-.red{
-  background:#f8d7da;
-  color:#721c24;
-}
+.green{ background:#d4edda; color:#155724; }
+.yellow{ background:#fff3cd; color:#856404; }
+.red{ background:#f8d7da; color:#721c24; }
 
 /* Modal */
 .modal{
@@ -171,13 +167,14 @@ li{
   <input type="text" id="itemLinkInput" placeholder="Link (optional)" />
   <input type="text" id="itemPriceInput" placeholder="Preis (optional)" />
 
+  <label for="itemPriorityInput">Priorität</label>
   <select id="itemPriorityInput">
     <option value="green">🟢 Grün</option>
     <option value="yellow">🟡 Gelb</option>
     <option value="red">🔴 Rot</option>
   </select>
 
-  <input type="text" id="itemUserInput" placeholder="Name (optional)" />
+  <input type="text" id="itemUserInput" placeholder="Name" required />
 
   <button onclick="addItem()">Hinzufügen</button>
 </div>
@@ -186,21 +183,22 @@ li{
 
 <hr>
 
-<!-- Wunschliste -->
 <h2>🎁 Wunschliste</h2>
 
+<!-- Wunschliste -->
 <div class="form-group">
   <input type="text" id="wishNameInput" placeholder="Wunschartikel..." />
   <input type="text" id="wishLinkInput" placeholder="Link (optional)" />
   <input type="text" id="wishPriceInput" placeholder="Preis (optional)" />
 
+  <label for="wishPriorityInput">Priorität</label>
   <select id="wishPriorityInput">
     <option value="green">🟢 Grün</option>
     <option value="yellow">🟡 Gelb</option>
     <option value="red">🔴 Rot</option>
   </select>
 
-  <input type="text" id="wishUserInput" placeholder="Name (optional)" />
+  <input type="text" id="wishUserInput" placeholder="Name" required />
 
   <button onclick="addWishItem()">Wunsch hinzufügen</button>
 </div>
@@ -217,13 +215,14 @@ li{
       <input type="text" id="editLink" placeholder="Link">
       <input type="text" id="editPrice" placeholder="Preis">
 
+      <label for="editPriority">Priorität</label>
       <select id="editPriority">
         <option value="green">🟢 Grün</option>
         <option value="yellow">🟡 Gelb</option>
         <option value="red">🔴 Rot</option>
       </select>
 
-      <input type="text" id="editUser" placeholder="Name (optional)">
+      <input type="text" id="editUser" placeholder="Name">
     </div>
 
     <div class="modal-buttons">
@@ -264,7 +263,6 @@ const wishRef = collection(db, "wishList");
 let currentEditId = null;
 let currentCollection = null;
 
-/* Helpers */
 function fixUrl(url){
   if(!url) return "";
   if(!url.startsWith("http://") && !url.startsWith("https://")){
@@ -278,7 +276,9 @@ function formatDate(timestamp){
   return new Date(timestamp).toLocaleString("de-DE");
 }
 
-/* Einkaufsliste speichern */
+/* ======================
+   Hinzufügen
+====================== */
 window.addItem = async function(){
   const name = document.getElementById("itemInput").value.trim();
   const link = fixUrl(document.getElementById("itemLinkInput").value.trim());
@@ -286,24 +286,18 @@ window.addItem = async function(){
   const priority = document.getElementById("itemPriorityInput").value;
   const user = document.getElementById("itemUserInput").value.trim();
 
-  if(!name) return;
+  if(!name || !user) return;
 
   await addDoc(listRef,{
-    user,
-    name,
-    link,
-    price,
-    priority,
+    user,name,link,price,priority,
     createdAt: Date.now()
   });
 
-  document.getElementById("itemInput").value = "";
-  document.getElementById("itemLinkInput").value = "";
-  document.getElementById("itemPriceInput").value = "";
-  document.getElementById("itemUserInput").value = "";
+  itemInput.value="";
+  itemLinkInput.value="";
+  itemPriceInput.value="";
 };
 
-/* Wunschliste speichern */
 window.addWishItem = async function(){
   const name = document.getElementById("wishNameInput").value.trim();
   const link = fixUrl(document.getElementById("wishLinkInput").value.trim());
@@ -311,83 +305,87 @@ window.addWishItem = async function(){
   const priority = document.getElementById("wishPriorityInput").value;
   const user = document.getElementById("wishUserInput").value.trim();
 
-  if(!name) return;
+  if(!name || !user) return;
 
   await addDoc(wishRef,{
-    user,
-    name,
-    link,
-    price,
-    priority,
+    user,name,link,price,priority,
     createdAt: Date.now()
   });
 
-  document.getElementById("wishNameInput").value = "";
-  document.getElementById("wishLinkInput").value = "";
-  document.getElementById("wishPriceInput").value = "";
-  document.getElementById("wishUserInput").value = "";
+  wishNameInput.value="";
+  wishLinkInput.value="";
+  wishPriceInput.value="";
 };
 
-/* Modal öffnen */
+/* ======================
+   Bearbeiten
+====================== */
 window.openEditModal = function(data,id,collectionName){
   currentEditId = id;
   currentCollection = collectionName;
 
-  document.getElementById("editName").value = data.name || "";
-  document.getElementById("editLink").value = data.link || "";
-  document.getElementById("editPrice").value = data.price || "";
-  document.getElementById("editPriority").value = data.priority || "green";
-  document.getElementById("editUser").value = data.user || "";
+  editName.value = data.name || "";
+  editLink.value = data.link || "";
+  editPrice.value = data.price || "";
+  editPriority.value = data.priority || "green";
+  editUser.value = data.user || "";
 
-  document.getElementById("editModal").style.display = "flex";
+  editModal.style.display = "flex";
 };
 
-/* Modal schließen */
 window.closeModal = function(){
-  document.getElementById("editModal").style.display = "none";
+  editModal.style.display = "none";
 };
 
-/* Bearbeiten speichern */
 window.saveEdit = async function(){
-  const name = document.getElementById("editName").value.trim();
-  const link = fixUrl(document.getElementById("editLink").value.trim());
-  const price = document.getElementById("editPrice").value.trim();
-  const priority = document.getElementById("editPriority").value;
-  const user = document.getElementById("editUser").value.trim();
+  const name = editName.value.trim();
+  const link = fixUrl(editLink.value.trim());
+  const price = editPrice.value.trim();
+  const priority = editPriority.value;
+  const user = editUser.value.trim();
 
-  if(!name) return;
+  if(!name || !user) return;
 
   await updateDoc(doc(db,currentCollection,currentEditId),{
-    user,
-    name,
-    link,
-    price,
-    priority
+    user,name,link,price,priority
   });
 
   closeModal();
 };
 
-/* Anzeige */
+/* ======================
+   Verschieben
+====================== */
+async function moveItem(data,id,fromCollection){
+  const target = fromCollection === "shoppingList" ? wishRef : listRef;
+
+  await addDoc(target,{
+    ...data
+  });
+
+  await deleteDoc(doc(db,fromCollection,id));
+}
+
+/* ======================
+   Anzeige
+====================== */
 function createItem(docData,id,collectionName){
   const li = document.createElement("li");
 
   const info = document.createElement("div");
   info.className = "item-info";
 
-  const name = document.createElement("span");
-  name.className = "item-name";
-  name.textContent = docData.name;
-  info.appendChild(name);
+  const title = document.createElement("span");
+  title.className = "item-name";
+  title.textContent = docData.name;
+  info.appendChild(title);
 
   const prio = document.createElement("span");
   prio.className = "priority " + (docData.priority || "green");
   prio.textContent =
-    docData.priority === "yellow"
-      ? "🟡 Gelb"
-      : docData.priority === "red"
-      ? "🔴 Rot"
-      : "🟢 Grün";
+    docData.priority === "yellow" ? "🟡 Gelb" :
+    docData.priority === "red" ? "🔴 Rot" :
+    "🟢 Grün";
 
   info.appendChild(prio);
 
@@ -395,17 +393,12 @@ function createItem(docData,id,collectionName){
   details.className = "item-details";
 
   let txt = [];
-
-  if(docData.price){
-    txt.push("💰 " + docData.price);
-  }
+  if(docData.price) txt.push("💰 " + docData.price);
 
   details.innerHTML = txt.join(" | ");
 
   if(docData.link){
-    if(txt.length > 0){
-      details.innerHTML += " | ";
-    }
+    if(txt.length > 0) details.innerHTML += " | ";
 
     const a = document.createElement("a");
     a.href = docData.link;
@@ -422,65 +415,64 @@ function createItem(docData,id,collectionName){
 
   const meta = document.createElement("span");
   meta.className = "item-meta";
+  meta.textContent =
+    "📅 " + formatDate(docData.createdAt) +
+    " | 👤 " + docData.user;
 
-  let metaText = "📅 " + formatDate(docData.createdAt);
-
-  if(docData.user){
-    metaText += " | 👤 " + docData.user;
-  }
-
-  meta.textContent = metaText;
   info.appendChild(meta);
 
-  const buttonWrap = document.createElement("div");
-  buttonWrap.style.display = "flex";
-  buttonWrap.style.gap = "8px";
+  const actions = document.createElement("div");
+  actions.style.display = "flex";
+  actions.style.gap = "8px";
 
   const editBtn = document.createElement("button");
   editBtn.className = "edit";
   editBtn.textContent = "✏️";
+  editBtn.onclick = () => openEditModal(docData,id,collectionName);
 
-  editBtn.onclick = () => {
-    openEditModal(docData,id,collectionName);
+  const moveBtn = document.createElement("button");
+  moveBtn.className = "move";
+  moveBtn.textContent =
+    collectionName === "shoppingList" ? "➡️ Wunsch" : "⬅️ Einkauf";
+
+  moveBtn.onclick = async () => {
+    await moveItem(docData,id,collectionName);
   };
 
-  const deleteBtn = document.createElement("button");
-  deleteBtn.className = "delete";
-  deleteBtn.textContent = "X";
-
-  deleteBtn.onclick = async () => {
+  const delBtn = document.createElement("button");
+  delBtn.className = "delete";
+  delBtn.textContent = "X";
+  delBtn.onclick = async () => {
     await deleteDoc(doc(db,collectionName,id));
   };
 
-  buttonWrap.appendChild(editBtn);
-  buttonWrap.appendChild(deleteBtn);
+  actions.appendChild(editBtn);
+  actions.appendChild(moveBtn);
+  actions.appendChild(delBtn);
 
   li.appendChild(info);
-  li.appendChild(buttonWrap);
+  li.appendChild(actions);
 
   return li;
 }
 
-/* Live Sync Einkaufsliste */
+/* ======================
+   Live Sync
+====================== */
 onSnapshot(listRef,(snapshot)=>{
-  const list = document.getElementById("list");
   list.innerHTML = "";
-
   snapshot.forEach((itemDoc)=>{
     list.appendChild(
-      createItem(itemDoc.data(), itemDoc.id, "shoppingList")
+      createItem(itemDoc.data(),itemDoc.id,"shoppingList")
     );
   });
 });
 
-/* Live Sync Wunschliste */
 onSnapshot(wishRef,(snapshot)=>{
-  const list = document.getElementById("wishList");
-  list.innerHTML = "";
-
+  wishList.innerHTML = "";
   snapshot.forEach((itemDoc)=>{
-    list.appendChild(
-      createItem(itemDoc.data(), itemDoc.id, "wishList")
+    wishList.appendChild(
+      createItem(itemDoc.data(),itemDoc.id,"wishList")
     );
   });
 });
@@ -488,3 +480,4 @@ onSnapshot(wishRef,(snapshot)=>{
 
 </body>
 </html>
+```
