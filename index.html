@@ -48,6 +48,16 @@ button.delete:hover {
   background: #cc0000;
 }
 
+button.edit {
+  width: auto;
+  background: #28a745;
+  padding: 6px 10px;
+}
+
+button.edit:hover {
+  background: #1e7e34;
+}
+
 h1, h2 {
   border-bottom: 2px solid #333;
   padding-bottom: 5px;
@@ -111,6 +121,46 @@ li {
   background: #f8d7da;
   color: #721c24;
 }
+
+/* Modal */
+.modal {
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,.55);
+  display: none;
+  justify-content: center;
+  align-items: center;
+  z-index: 999;
+}
+
+.modal-box {
+  background: white;
+  width: 95%;
+  max-width: 420px;
+  padding: 25px;
+  border-radius: 14px;
+}
+
+.modal-box h3 {
+  margin-top: 0;
+}
+
+.modal-buttons {
+  display: flex;
+  gap: 10px;
+}
+
+.modal-buttons button {
+  flex: 1;
+}
+
+.cancel {
+  background: #888;
+}
+
+.cancel:hover {
+  background: #666;
+}
 </style>
 </head>
 
@@ -156,6 +206,30 @@ li {
 
 <ul id="wishList"></ul>
 
+<!-- Bearbeiten Modal -->
+<div id="editModal" class="modal">
+  <div class="modal-box">
+    <h3>✏️ Eintrag bearbeiten</h3>
+
+    <div class="form-group">
+      <input type="text" id="editName" placeholder="Name">
+      <input type="text" id="editLink" placeholder="Link">
+      <input type="text" id="editPrice" placeholder="Preis">
+
+      <select id="editPriority">
+        <option value="green">🟢 Grün</option>
+        <option value="yellow">🟡 Gelb</option>
+        <option value="red">🔴 Rot</option>
+      </select>
+    </div>
+
+    <div class="modal-buttons">
+      <button onclick="saveEdit()">💾 Speichern</button>
+      <button onclick="closeModal()" class="cancel">Abbrechen</button>
+    </div>
+  </div>
+</div>
+
 <script type="module">
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
 
@@ -165,7 +239,8 @@ import {
   addDoc,
   deleteDoc,
   doc,
-  onSnapshot
+  onSnapshot,
+  updateDoc
 } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
 const firebaseConfig = {
@@ -183,6 +258,9 @@ const db = getFirestore(app);
 const listRef = collection(db, "shoppingList");
 const wishRef = collection(db, "wishList");
 
+let currentEditId = null;
+let currentCollection = null;
+
 function fixUrl(url) {
   if (!url) return "";
   if (!url.startsWith("http://") && !url.startsWith("https://")) {
@@ -191,9 +269,7 @@ function fixUrl(url) {
   return url;
 }
 
-/* =========================
-   Einkaufsliste speichern
-========================= */
+/* Einkaufsliste speichern */
 window.addItem = async function () {
   const name = document.getElementById("itemInput").value.trim();
   const link = fixUrl(document.getElementById("itemLinkInput").value.trim());
@@ -203,10 +279,7 @@ window.addItem = async function () {
   if (!name) return;
 
   await addDoc(listRef, {
-    name,
-    link,
-    price,
-    priority,
+    name, link, price, priority,
     createdAt: Date.now()
   });
 
@@ -215,9 +288,7 @@ window.addItem = async function () {
   document.getElementById("itemPriceInput").value = "";
 };
 
-/* =========================
-   Wunschliste speichern
-========================= */
+/* Wunschliste speichern */
 window.addWishItem = async function () {
   const name = document.getElementById("wishNameInput").value.trim();
   const link = fixUrl(document.getElementById("wishLinkInput").value.trim());
@@ -227,10 +298,7 @@ window.addWishItem = async function () {
   if (!name) return;
 
   await addDoc(wishRef, {
-    name,
-    link,
-    price,
-    priority,
+    name, link, price, priority,
     createdAt: Date.now()
   });
 
@@ -239,9 +307,41 @@ window.addWishItem = async function () {
   document.getElementById("wishPriceInput").value = "";
 };
 
-/* =========================
-   Darstellung
-========================= */
+/* Modal öffnen */
+window.openEditModal = function(data, id, collectionName) {
+  currentEditId = id;
+  currentCollection = collectionName;
+
+  document.getElementById("editName").value = data.name || "";
+  document.getElementById("editLink").value = data.link || "";
+  document.getElementById("editPrice").value = data.price || "";
+  document.getElementById("editPriority").value = data.priority || "green";
+
+  document.getElementById("editModal").style.display = "flex";
+};
+
+/* Modal schließen */
+window.closeModal = function() {
+  document.getElementById("editModal").style.display = "none";
+};
+
+/* Änderungen speichern */
+window.saveEdit = async function() {
+  const name = document.getElementById("editName").value.trim();
+  const link = fixUrl(document.getElementById("editLink").value.trim());
+  const price = document.getElementById("editPrice").value.trim();
+  const priority = document.getElementById("editPriority").value;
+
+  if (!name) return;
+
+  await updateDoc(doc(db, currentCollection, currentEditId), {
+    name, link, price, priority
+  });
+
+  closeModal();
+};
+
+/* Darstellung */
 function createItem(docData, id, collectionName) {
   const li = document.createElement("li");
 
@@ -256,11 +356,9 @@ function createItem(docData, id, collectionName) {
   const prio = document.createElement("span");
   prio.className = "priority " + docData.priority;
   prio.textContent =
-    docData.priority === "green"
-      ? "🟢 Grün"
-      : docData.priority === "yellow"
-      ? "🟡 Gelb"
-      : "🔴 Rot";
+    docData.priority === "green" ? "🟢 Grün" :
+    docData.priority === "yellow" ? "🟡 Gelb" :
+    "🔴 Rot";
 
   info.appendChild(prio);
 
@@ -268,7 +366,6 @@ function createItem(docData, id, collectionName) {
   details.className = "item-details";
 
   let txt = [];
-
   if (docData.price) txt.push("💰 " + docData.price);
 
   details.innerHTML = txt.join(" | ");
@@ -288,23 +385,36 @@ function createItem(docData, id, collectionName) {
     info.appendChild(details);
   }
 
-  const btn = document.createElement("button");
-  btn.className = "delete";
-  btn.textContent = "X";
+  const buttonWrap = document.createElement("div");
+  buttonWrap.style.display = "flex";
+  buttonWrap.style.gap = "8px";
 
-  btn.onclick = async () => {
+  const editBtn = document.createElement("button");
+  editBtn.className = "edit";
+  editBtn.textContent = "✏️";
+
+  editBtn.onclick = () => {
+    openEditModal(docData, id, collectionName);
+  };
+
+  const deleteBtn = document.createElement("button");
+  deleteBtn.className = "delete";
+  deleteBtn.textContent = "X";
+
+  deleteBtn.onclick = async () => {
     await deleteDoc(doc(db, collectionName, id));
   };
 
+  buttonWrap.appendChild(editBtn);
+  buttonWrap.appendChild(deleteBtn);
+
   li.appendChild(info);
-  li.appendChild(btn);
+  li.appendChild(buttonWrap);
 
   return li;
 }
 
-/* =========================
-   Live Sync Einkaufsliste
-========================= */
+/* Live Sync Einkaufsliste */
 onSnapshot(listRef, (snapshot) => {
   const list = document.getElementById("list");
   list.innerHTML = "";
@@ -316,9 +426,7 @@ onSnapshot(listRef, (snapshot) => {
   });
 });
 
-/* =========================
-   Live Sync Wunschliste
-========================= */
+/* Live Sync Wunschliste */
 onSnapshot(wishRef, (snapshot) => {
   const list = document.getElementById("wishList");
   list.innerHTML = "";
