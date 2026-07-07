@@ -105,6 +105,14 @@ body{
   font-size:17px;
 }
 
+.list-total{
+  text-align:center;
+  font-size:13px;
+  font-weight:600;
+  color:var(--text-muted);
+  margin:-8px 0 16px;
+}
+
 .form-grid{
   display:grid;
   grid-template-columns:1fr 1fr;
@@ -272,6 +280,20 @@ li.item.wish{
 }
 
 .card-header h2{ margin:0; text-align:center; }
+
+.header-btn{
+  justify-self:end;
+  background:var(--surface);
+  border:1px solid var(--border);
+  color:var(--text);
+  padding:8px 12px;
+  border-radius:8px;
+  font-size:12.5px;
+  font-weight:600;
+  white-space:nowrap;
+}
+
+.header-btn:hover{ background:var(--bg); }
 
 .sort-dropdown{
   position:relative;
@@ -446,6 +468,10 @@ button.buy:hover{ background:#c9e8d1; }
 
 @media(max-width:600px){
   .form-grid{ grid-template-columns:1fr; }
+  .card-header{ grid-template-columns:1fr; justify-items:center; gap:8px; }
+  .card-header span{ display:none; }
+  .card-header .header-btn,
+  .card-header .sort-dropdown{ justify-self:center; }
 }
 </style>
 </head>
@@ -516,7 +542,12 @@ button.buy:hover{ background:#c9e8d1; }
 <div id="lists" class="tab-content active">
 
 <div class="card">
-  <h2 style="text-align:center;">Einkauf AG Materialbeschaffung</h2>
+  <div class="card-header">
+    <span></span>
+    <h2>Einkauf AG Materialbeschaffung</h2>
+    <button class="header-btn" onclick="exportWishPdf()">📄 PDF exportieren</button>
+  </div>
+  <p class="list-total" id="wishTotal"></p>
 
   <ul id="wishList"></ul>
 </div>
@@ -560,6 +591,9 @@ button.buy:hover{ background:#c9e8d1; }
 </div>
 
 </div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.8.2/jspdf.plugin.autotable.min.js"></script>
 
 <script type="module">
 
@@ -628,6 +662,31 @@ function parsePrice(str){
   const m = String(str).match(/\d+(?:,\d+)?/);
   if(!m) return null;
   return parseFloat(m[0].replace(",", "."));
+}
+
+function parseAmount(str){
+  if(!str) return 1;
+  const m = String(str).match(/\d+(?:[.,]\d+)?/);
+  if(!m) return 1;
+  const n = parseFloat(m[0].replace(",", "."));
+  return n > 0 ? n : 1;
+}
+
+function lineTotal(data){
+  const p = parsePrice(data.price);
+  return p===null ? null : p * parseAmount(data.amount);
+}
+
+function formatEuro(value){
+  return value.toLocaleString("de-DE", { minimumFractionDigits:2, maximumFractionDigits:2 }) + " €";
+}
+
+function updateWishTotal(docs){
+  if(docs.length === 0){ wishTotal.textContent = ""; return; }
+  const totals = docs.map(d=>lineTotal(d.data));
+  const sum = totals.reduce((acc,t)=>acc + (t||0), 0);
+  const missing = totals.filter(t=>t===null).length;
+  wishTotal.textContent = `Gesamtsumme: ${formatEuro(sum)}` + (missing>0 ? ` (${missing} ohne Preis)` : "");
 }
 
 /* =========================
@@ -851,6 +910,50 @@ function createReorderControls(collection, docs, index){
   wrap.append(up,down);
   return wrap;
 }
+
+/* =========================
+   PDF-EXPORT (AG Materialbeschaffung)
+========================= */
+let wishDocsCache = [];
+
+window.exportWishPdf = function(){
+  if(wishDocsCache.length === 0){
+    showStatus("❌ Keine Artikel zum Exportieren vorhanden.", true);
+    return;
+  }
+
+  const { jsPDF } = window.jspdf;
+  const pdf = new jsPDF();
+
+  pdf.setFontSize(15);
+  pdf.text("Einkauf AG Materialbeschaffung", 14, 18);
+  pdf.setFontSize(10);
+  pdf.setTextColor(120);
+  pdf.text("Stand: " + new Date().toLocaleDateString("de-DE"), 14, 25);
+
+  const rows = wishDocsCache.map(({data})=>{
+    const total = lineTotal(data);
+    return [
+      data.name + (data.amount ? ` (${data.amount})` : ""),
+      total===null ? "–" : formatEuro(total)
+    ];
+  });
+
+  const sum = wishDocsCache.reduce((acc,{data})=>acc + (lineTotal(data)||0), 0);
+
+  pdf.autoTable({
+    startY: 30,
+    head: [["Artikel", "Preis"]],
+    body: rows,
+    foot: [["Gesamtsumme", formatEuro(sum)]],
+    showFoot: "lastPage",
+    columnStyles: { 1: { halign:"right", cellWidth:35 } },
+    footStyles: { fontStyle:"bold" },
+    styles: { fontSize:10 }
+  });
+
+  pdf.save("AG_Materialbeschaffung_" + new Date().toISOString().slice(0,10) + ".pdf");
+};
 
 /* =========================
    EINKAUFSLISTE SORTIEREN (Preis / Erstellungsdatum / Priorität)
@@ -1150,6 +1253,8 @@ onSnapshot(wishRef, s=>{
     docs.sort((a,b)=>(a.data.order ?? a.data.createdAt ?? 0) - (b.data.order ?? b.data.createdAt ?? 0));
     docs.forEach(({data,id},index)=>wishList.appendChild(render(data,id,"wishList",docs,index)));
   }
+  wishDocsCache = docs;
+  updateWishTotal(docs);
   renderTrash();
 }, e=>showStatus("❌ Firebase-Verbindungsfehler: " + e.message, true));
 
