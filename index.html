@@ -4,166 +4,361 @@
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
 <title>Einkaufsliste Holzwerkstatt</title>
+<link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🪵</text></svg>" />
 
 <style>
+:root{
+  --bg:#f4efe6;
+  --surface:#ffffff;
+  --border:#e6dfd0;
+  --text:#2c2620;
+  --text-muted:#7a7264;
+  --primary:#b3661d;
+  --primary-dark:#8f5015;
+  --danger:#c0392b;
+  --danger-bg:#fbdedb;
+  --warning:#8a6a06;
+  --warning-bg:#fdf0cd;
+  --violet:#5732a8;
+  --violet-bg:#e6ddf7;
+  --radius:10px;
+  --shadow:0 1px 3px rgba(43,34,20,0.08),0 1px 2px rgba(43,34,20,0.05);
+}
+
+*{ box-sizing:border-box; }
+
 body{
-  font-family:Arial,sans-serif;
-  max-width:900px;
-  margin:40px auto;
-  padding:20px;
+  font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;
+  background:var(--bg);
+  color:var(--text);
+  margin:0;
+}
+
+.page{
+  max-width:880px;
+  margin:0 auto;
+  padding:36px 20px 80px;
+}
+
+.app-header{
+  text-align:center;
+  margin-bottom:28px;
+}
+
+.app-header h1{
+  font-size:26px;
+  margin:0 0 6px;
+  letter-spacing:-.01em;
+}
+
+.app-header p{
+  margin:0;
+  color:var(--text-muted);
+  font-size:14px;
+}
+
+#statusMsg{
+  display:none;
+  position:sticky;
+  top:12px;
+  z-index:10;
+  padding:12px 16px;
+  margin-bottom:18px;
+  border-radius:var(--radius);
+  font-weight:600;
+  font-size:14px;
+  box-shadow:var(--shadow);
 }
 
 .tabs{
   display:flex;
-  gap:10px;
-  margin-bottom:20px;
+  gap:6px;
+  background:var(--surface);
+  padding:6px;
+  border-radius:12px;
+  box-shadow:var(--shadow);
+  margin-bottom:24px;
 }
 
 .tab-btn{
-  width:auto;
+  flex:1;
+  border:none;
+  background:transparent;
   padding:10px 16px;
-  background:#e9ecef;
+  border-radius:8px;
+  font-weight:600;
+  font-size:14px;
+  color:var(--text-muted);
+  cursor:pointer;
+  transition:background .15s,color .15s;
 }
 
-.tab-btn.active{
-  background:#007bff;
-  color:#fff;
-}
+.tab-btn:hover:not(.active){ background:var(--bg); }
+.tab-btn.active{ background:var(--primary); color:#fff; }
 
 .tab-content{ display:none; }
 .tab-content.active{ display:block; }
 
-.form-group{
-  display:flex;
-  flex-direction:column;
-  gap:8px;
-  margin-bottom:20px;
+.card{
+  background:var(--surface);
+  border-radius:var(--radius);
+  box-shadow:var(--shadow);
+  padding:22px;
+  margin-bottom:24px;
 }
+
+.card h2{
+  margin:0 0 16px;
+  font-size:17px;
+}
+
+.form-grid{
+  display:grid;
+  grid-template-columns:1fr 1fr;
+  gap:12px;
+  margin-bottom:14px;
+}
+
+.form-grid .full{ grid-column:1 / -1; }
 
 label{
-  font-size:14px;
-  font-weight:bold;
+  display:block;
+  font-size:11px;
+  font-weight:700;
+  text-transform:uppercase;
+  letter-spacing:.04em;
+  color:var(--text-muted);
+  margin-bottom:5px;
 }
 
-input,select,button{
-  padding:10px;
+input,select{
   width:100%;
-  font-size:16px;
-  box-sizing:border-box;
+  padding:10px 12px;
+  border:1px solid var(--border);
+  border-radius:8px;
+  font-size:14px;
+  background:#fff;
+  color:var(--text);
+  font-family:inherit;
+}
+
+input:focus,select:focus{
+  outline:none;
+  border-color:var(--primary);
 }
 
 button{
-  background:#007bff;
-  color:#fff;
   border:none;
+  border-radius:8px;
+  font-family:inherit;
+  font-weight:600;
   cursor:pointer;
+  transition:background .15s,transform .05s;
 }
 
-button:hover{ background:#0056b3; }
+button:active{ transform:scale(0.97); }
 
-button.delete{ background:#ff4d4d; }
-button.move{ background:#ff9800; }
-button.copy{ background:#6f42c1; }
-button.edit{ background:#28a745; }
+.btn-primary{
+  width:100%;
+  padding:11px 16px;
+  font-size:14px;
+  background:var(--primary);
+  color:#fff;
+}
 
-ul{ list-style:none; padding:0; }
+.btn-primary:hover{ background:var(--primary-dark); }
 
-li{
+ul{ list-style:none; padding:0; margin:0; display:flex; flex-direction:column; gap:10px; }
+
+li.item{
   display:flex;
   justify-content:space-between;
-  gap:15px;
-  padding:12px;
-  border-bottom:1px solid #ddd;
+  align-items:center;
+  gap:16px;
+  padding:14px 16px;
+  background:var(--bg);
+  border:1px solid var(--border);
+  border-radius:var(--radius);
 }
 
 .item-info{
   display:flex;
   flex-direction:column;
-  gap:4px;
+  gap:6px;
   flex:1;
+  min-width:0;
 }
 
+.item-info strong{
+  font-size:15px;
+  overflow-wrap:anywhere;
+}
+
+.item-meta{
+  font-size:12.5px;
+  color:var(--text-muted);
+  display:flex;
+  gap:12px;
+  flex-wrap:wrap;
+}
+
+.item-meta a{
+  color:var(--primary);
+  text-decoration:none;
+  font-weight:600;
+}
+
+.item-meta a:hover{ text-decoration:underline; }
+
 .priority{
-  font-size:13px;
-  font-weight:bold;
-  padding:4px 8px;
-  border-radius:8px;
+  font-size:11px;
+  font-weight:700;
+  padding:3px 10px;
+  border-radius:20px;
   width:fit-content;
 }
 
-.green{ background:#d4edda; color:#155724; }
-.yellow{ background:#fff3cd; color:#856404; }
-.red{ background:#f8d7da; color:#721c24; }
+.green{ background:#ddf0e1; color:#1f6b3f; }
+.yellow{ background:var(--warning-bg); color:var(--warning); }
+.red{ background:var(--danger-bg); color:var(--danger); }
 
 .actions{
   display:flex;
   gap:6px;
   flex-wrap:wrap;
+  flex-shrink:0;
+}
+
+.actions button{
+  padding:8px 12px;
+  font-size:13px;
+  white-space:nowrap;
+}
+
+button.delete{ background:var(--danger-bg); color:var(--danger); }
+button.delete:hover{ background:#f4c6c1; }
+button.move{ background:var(--warning-bg); color:var(--warning); }
+button.move:hover{ background:#f9e4a8; }
+button.copy{ background:var(--violet-bg); color:var(--violet); }
+button.copy:hover{ background:#d9c9f2; }
+
+.empty-state{
+  text-align:center;
+  color:var(--text-muted);
+  font-size:13.5px;
+  padding:28px 10px;
+  border:1px dashed var(--border);
+  border-radius:var(--radius);
+}
+
+@media(max-width:600px){
+  .form-grid{ grid-template-columns:1fr; }
+  li.item{ flex-direction:column; align-items:flex-start; }
+  .actions{ width:100%; }
+  .actions button{ flex:1; }
 }
 </style>
 </head>
 
 <body>
 
-<h1>🛒 Einkaufssystem Holzwerkstatt</h1>
-<div id="statusMsg" style="display:none;padding:10px;margin-bottom:12px;border-radius:6px;font-weight:bold;"></div>
+<div class="page">
+
+<div class="app-header">
+  <h1>🪵 Einkaufssystem Holzwerkstatt</h1>
+  <p>Bedarf erfassen, Wünsche sammeln, Bestand im Blick behalten</p>
+</div>
+
+<div id="statusMsg"></div>
 
 <div class="tabs">
-  <button class="tab-btn active" onclick="switchTab('lists')">Listen</button>
-  <button class="tab-btn" onclick="switchTab('inventory')">Inventar</button>
+  <button class="tab-btn active" onclick="switchTab('lists', event)">Listen</button>
+  <button class="tab-btn" onclick="switchTab('inventory', event)">📦 Inventar</button>
 </div>
 
 <!-- LISTEN -->
 <div id="lists" class="tab-content active">
 
-<h2>Einkaufsliste</h2>
+<div class="card">
+  <h2>🛒 Einkaufsliste</h2>
 
-<div class="form-group">
-  <input id="itemName" placeholder="Artikel" />
-  <input id="itemLink" placeholder="Link (optional)" />
-  <input id="itemPrice" placeholder="Preis (optional)" />
+  <div class="form-grid">
+    <div class="full">
+      <label>Artikel</label>
+      <input id="itemName" placeholder="z. B. Schleifpapier 120er" />
+    </div>
+    <div>
+      <label>Link (optional)</label>
+      <input id="itemLink" placeholder="https://…" />
+    </div>
+    <div>
+      <label>Preis (optional)</label>
+      <input id="itemPrice" placeholder="z. B. 12,90 €" />
+    </div>
+    <div>
+      <label>Priorität</label>
+      <select id="itemPriority">
+        <option value="green">🟢 Grün</option>
+        <option value="yellow">🟡 Gelb</option>
+        <option value="red">🔴 Rot</option>
+      </select>
+    </div>
+    <div>
+      <label>Name</label>
+      <input id="itemUser" placeholder="Wer trägt ein?" />
+    </div>
+  </div>
 
-  <label>Priorität</label>
-  <select id="itemPriority">
-    <option value="green">🟢 Grün</option>
-    <option value="yellow">🟡 Gelb</option>
-    <option value="red">🔴 Rot</option>
-  </select>
+  <button class="btn-primary" onclick="addItem()">+ Zur Einkaufsliste hinzufügen</button>
 
-  <input id="itemUser" placeholder="Name" />
-  <button onclick="addItem()">Hinzufügen</button>
+  <ul id="shoppingList" style="margin-top:16px;"></ul>
 </div>
 
-<ul id="shoppingList"></ul>
+<div class="card">
+  <h2>🎁 Wunschliste</h2>
 
-<hr>
+  <div class="form-grid">
+    <div class="full">
+      <label>Artikel</label>
+      <input id="wishName" placeholder="z. B. neue Oberfräse" />
+    </div>
+    <div>
+      <label>Link (optional)</label>
+      <input id="wishLink" placeholder="https://…" />
+    </div>
+    <div>
+      <label>Preis (optional)</label>
+      <input id="wishPrice" placeholder="z. B. 249 €" />
+    </div>
+    <div>
+      <label>Priorität</label>
+      <select id="wishPriority">
+        <option value="green">🟢 Grün</option>
+        <option value="yellow">🟡 Gelb</option>
+        <option value="red">🔴 Rot</option>
+      </select>
+    </div>
+    <div>
+      <label>Name</label>
+      <input id="wishUser" placeholder="Wer trägt ein?" />
+    </div>
+  </div>
 
-<h2>Wunschliste</h2>
+  <button class="btn-primary" onclick="addWish()">+ Zur Wunschliste hinzufügen</button>
 
-<div class="form-group">
-  <input id="wishName" placeholder="Artikel" />
-  <input id="wishLink" placeholder="Link (optional)" />
-  <input id="wishPrice" placeholder="Preis (optional)" />
-
-  <label>Priorität</label>
-  <select id="wishPriority">
-    <option value="green">🟢 Grün</option>
-    <option value="yellow">🟡 Gelb</option>
-    <option value="red">🔴 Rot</option>
-  </select>
-
-  <input id="wishUser" placeholder="Name" />
-  <button onclick="addWish()">Hinzufügen</button>
+  <ul id="wishList" style="margin-top:16px;"></ul>
 </div>
-
-<ul id="wishList"></ul>
 
 </div>
 
 <!-- INVENTAR -->
 <div id="inventory" class="tab-content">
-<h2>📦 Inventar</h2>
-<ul id="inventoryList"></ul>
+  <div class="card">
+    <h2>📦 Inventar</h2>
+    <ul id="inventoryList"></ul>
+  </div>
+</div>
+
 </div>
 
 <script type="module">
@@ -176,7 +371,6 @@ import {
   deleteDoc,
   doc,
   onSnapshot,
-  updateDoc,
   setDoc
 } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
@@ -194,6 +388,8 @@ const db = getFirestore(app);
 const shoppingRef = collection(db,"shoppingList");
 const wishRef = collection(db,"wishList");
 const inventoryRef = collection(db,"inventory");
+
+const priorityLabels = { green:"🟢 Grün", yellow:"🟡 Gelb", red:"🔴 Rot" };
 
 /* =========================
    NORMALIZER (WICHTIG!)
@@ -216,24 +412,24 @@ function showStatus(msg, isError){
   const el = document.getElementById("statusMsg");
   el.textContent = msg;
   el.style.display = "block";
-  el.style.background = isError ? "#f8d7da" : "#d4edda";
-  el.style.color = isError ? "#721c24" : "#155724";
+  el.style.background = isError ? "#fbdedb" : "#ddf0e1";
+  el.style.color = isError ? "#c0392b" : "#1f6b3f";
   if(!isError) setTimeout(()=>{ el.style.display="none"; }, 3000);
 }
 
 /* =========================
    TAB SWITCH
 ========================= */
-window.switchTab = function(id){
+window.switchTab = function(id, evt){
   document.querySelectorAll(".tab-content").forEach(e=>e.classList.remove("active"));
   document.querySelectorAll(".tab-btn").forEach(e=>e.classList.remove("active"));
 
   document.getElementById(id).classList.add("active");
-  event.target.classList.add("active");
+  evt.target.classList.add("active");
 };
 
 /* =========================
-   INVENTAR SAVE (deduped via setDoc)
+   INVENTAR SAVE (deduped via setDoc, gleiche ID wie im Listeneintrag)
 ========================= */
 async function saveToInventory(data, id){
   const item = normalize(data);
@@ -295,23 +491,22 @@ window.addWish = async function(){
 };
 
 /* =========================
-   MOVE (kein Duplikat!)
+   MOVE (gleiche ID im Ziel -> kein Duplikat im Inventar)
 ========================= */
 async function move(data,id,from){
-  const target = from==="shoppingList" ? wishRef : shoppingRef;
+  const targetCollection = from==="shoppingList" ? "wishList" : "shoppingList";
+  const normalized = normalize(data);
 
-  const newRef = await addDoc(target, normalize(data));
-  // Inventareintrag unter neuer ID anlegen, alter bleibt als Historie
-  await saveToInventory(normalize(data), newRef.id);
-  await deleteDoc(doc(db,from,id));
+  await setDoc(doc(db, targetCollection, id), normalized);
+  await saveToInventory(normalized, id);
+  await deleteDoc(doc(db, from, id));
 }
 
 /* =========================
-   COPY FROM INVENTORY
+   COPY FROM INVENTORY (gleiche ID -> kein Duplikat im Inventar)
 ========================= */
-async function copyTo(target,data){
-  const ref = target==="shoppingList" ? shoppingRef : wishRef;
-  await addDoc(ref,normalize(data));
+async function copyTo(target, data, id){
+  await setDoc(doc(db, target, id), normalize(data));
 }
 
 /* =========================
@@ -319,16 +514,20 @@ async function copyTo(target,data){
 ========================= */
 function render(data,id,collection){
   const li = document.createElement("li");
+  li.className = "item";
 
   const info = document.createElement("div");
   info.className="item-info";
 
   info.innerHTML=`
     <strong>${data.name}</strong>
-    <span class="priority ${data.priority}">
-      ${data.priority}
-    </span>
-    <small>👤 ${data.user} | 📅 ${new Date(data.createdAt).toLocaleString()}</small>
+    <span class="priority ${data.priority}">${priorityLabels[data.priority] || data.priority}</span>
+    <div class="item-meta">
+      <span>👤 ${data.user}</span>
+      <span>📅 ${new Date(data.createdAt).toLocaleDateString()}</span>
+      ${data.price ? `<span>💶 ${data.price}</span>` : ""}
+      ${data.link ? `<a href="${data.link}" target="_blank" rel="noopener">🔗 Link</a>` : ""}
+    </div>
   `;
 
   const actions = document.createElement("div");
@@ -341,7 +540,7 @@ function render(data,id,collection){
 
   const del = document.createElement("button");
   del.className="delete";
-  del.textContent="X";
+  del.textContent="✕";
   del.onclick = async () => {
     await saveToInventory(data, id);
     await deleteDoc(doc(db, collection, id));
@@ -358,11 +557,18 @@ function render(data,id,collection){
 ========================= */
 function renderInv(data,id){
   const li=document.createElement("li");
+  li.className = "item";
 
   const info=document.createElement("div");
+  info.className="item-info";
   info.innerHTML=`
     <strong>${data.name}</strong>
-    <small>👤 ${data.user}</small>
+    <span class="priority ${data.priority}">${priorityLabels[data.priority] || data.priority}</span>
+    <div class="item-meta">
+      <span>👤 ${data.user}</span>
+      ${data.price ? `<span>💶 ${data.price}</span>` : ""}
+      ${data.link ? `<a href="${data.link}" target="_blank" rel="noopener">🔗 Link</a>` : ""}
+    </div>
   `;
 
   const actions=document.createElement("div");
@@ -371,16 +577,16 @@ function renderInv(data,id){
   const toShop=document.createElement("button");
   toShop.className="copy";
   toShop.textContent="🛒 Einkauf";
-  toShop.onclick=()=>copyTo("shoppingList",data);
+  toShop.onclick=()=>copyTo("shoppingList",data,id);
 
   const toWish=document.createElement("button");
   toWish.className="copy";
   toWish.textContent="🎁 Wunsch";
-  toWish.onclick=()=>copyTo("wishList",data);
+  toWish.onclick=()=>copyTo("wishList",data,id);
 
   const del=document.createElement("button");
   del.className="delete";
-  del.textContent="X";
+  del.textContent="✕";
   del.onclick=()=>deleteDoc(doc(db,"inventory",id));
 
   actions.append(toShop,toWish,del);
@@ -389,21 +595,31 @@ function renderInv(data,id){
   return li;
 }
 
+function renderEmptyState(text){
+  const li = document.createElement("li");
+  li.className = "empty-state";
+  li.textContent = text;
+  return li;
+}
+
 /* =========================
    LIVE SYNC
 ========================= */
 onSnapshot(shoppingRef, s=>{
   shoppingList.innerHTML="";
+  if(s.empty){ shoppingList.appendChild(renderEmptyState("Noch keine Artikel auf der Einkaufsliste.")); return; }
   s.forEach(d=>shoppingList.appendChild(render(d.data(),d.id,"shoppingList")));
 }, e=>showStatus("❌ Firebase-Verbindungsfehler: " + e.message, true));
 
 onSnapshot(wishRef, s=>{
   wishList.innerHTML="";
+  if(s.empty){ wishList.appendChild(renderEmptyState("Noch keine Wünsche eingetragen.")); return; }
   s.forEach(d=>wishList.appendChild(render(d.data(),d.id,"wishList")));
 }, e=>showStatus("❌ Firebase-Verbindungsfehler: " + e.message, true));
 
 onSnapshot(inventoryRef, s=>{
   inventoryList.innerHTML="";
+  if(s.empty){ inventoryList.appendChild(renderEmptyState("Inventar ist leer.")); return; }
   s.forEach(d=>inventoryList.appendChild(renderInv(d.data(),d.id)));
 }, e=>showStatus("❌ Firebase-Verbindungsfehler: " + e.message, true));
 
