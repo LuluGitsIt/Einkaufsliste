@@ -21,6 +21,9 @@
   --warning-bg:#fdf0cd;
   --violet:#5732a8;
   --violet-bg:#e6ddf7;
+  --wish:#a3226e;
+  --wish-bg:#fbe2ef;
+  --wish-item-bg:#fdf3f8;
   --radius:10px;
   --shadow:0 1px 3px rgba(43,34,20,0.08),0 1px 2px rgba(43,34,20,0.05);
 }
@@ -47,14 +50,8 @@ body{
 
 .app-header h1{
   font-size:26px;
-  margin:0 0 6px;
-  letter-spacing:-.01em;
-}
-
-.app-header p{
   margin:0;
-  color:var(--text-muted);
-  font-size:14px;
+  letter-spacing:-.01em;
 }
 
 #statusMsg{
@@ -70,31 +67,27 @@ body{
   box-shadow:var(--shadow);
 }
 
-.tabs{
+.toolbar{
   display:flex;
-  gap:6px;
-  background:var(--surface);
-  padding:6px;
-  border-radius:12px;
-  box-shadow:var(--shadow);
+  gap:10px;
   margin-bottom:24px;
+  flex-wrap:wrap;
 }
 
-.tab-btn{
-  flex:1;
-  border:none;
-  background:transparent;
-  padding:10px 16px;
-  border-radius:8px;
-  font-weight:600;
+.toolbar button{
+  padding:12px 20px;
+  border-radius:10px;
   font-size:14px;
-  color:var(--text-muted);
-  cursor:pointer;
-  transition:background .15s,color .15s;
+  font-weight:600;
+  box-shadow:var(--shadow);
 }
 
-.tab-btn:hover:not(.active){ background:var(--bg); }
-.tab-btn.active{ background:var(--primary); color:#fff; }
+.btn-add{ background:var(--primary); color:#fff; }
+.btn-add:hover{ background:var(--primary-dark); }
+
+.btn-inventory{ background:var(--surface); color:var(--text); border:1px solid var(--border); }
+.btn-inventory:hover{ background:var(--bg); }
+.btn-inventory.active{ background:var(--primary); color:#fff; border-color:var(--primary); }
 
 .tab-content{ display:none; }
 .tab-content.active{ display:block; }
@@ -108,8 +101,14 @@ body{
 }
 
 .card h2{
-  margin:0 0 16px;
+  margin:0 0 4px;
   font-size:17px;
+}
+
+.card .card-subtitle{
+  margin:0 0 16px;
+  font-size:12.5px;
+  color:var(--text-muted);
 }
 
 .form-grid{
@@ -173,25 +172,36 @@ ul{ list-style:none; padding:0; margin:0; display:flex; flex-direction:column; g
 li.item{
   display:flex;
   justify-content:space-between;
-  align-items:center;
-  gap:16px;
+  align-items:stretch;
+  gap:14px;
   padding:14px 16px;
   background:var(--bg);
   border:1px solid var(--border);
   border-radius:var(--radius);
 }
 
+li.item.wish{
+  background:var(--wish-item-bg);
+  border-color:#f0c7de;
+}
+
 .item-info{
   display:flex;
   flex-direction:column;
-  gap:6px;
+  gap:7px;
   flex:1;
   min-width:0;
 }
 
-.item-info strong{
+.item-info strong.item-name{
   font-size:15px;
   overflow-wrap:anywhere;
+}
+
+.badges{
+  display:flex;
+  gap:6px;
+  flex-wrap:wrap;
 }
 
 .item-meta{
@@ -210,29 +220,83 @@ li.item{
 
 .item-meta a:hover{ text-decoration:underline; }
 
-.priority{
+.item-meta b{
+  color:var(--text);
+  font-weight:700;
+}
+
+.priority-swatch{
+  width:14px;
+  align-self:stretch;
+  flex-shrink:0;
+  border:none;
+  border-radius:7px;
+  cursor:pointer;
+  padding:0;
+  transition:opacity .15s,transform .05s;
+}
+
+.priority-swatch:hover{ opacity:.82; }
+.priority-swatch:active{ transform:scale(0.94); }
+.priority-swatch.green{ background:#3fa757; }
+.priority-swatch.yellow{ background:#eeb412; }
+.priority-swatch.red{ background:#dd4b3e; }
+
+.badge-wish{
   font-size:11px;
   font-weight:700;
   padding:3px 10px;
   border-radius:20px;
   width:fit-content;
+  background:var(--wish-bg);
+  color:var(--wish);
 }
 
-.green{ background:#ddf0e1; color:#1f6b3f; }
-.yellow{ background:var(--warning-bg); color:var(--warning); }
-.red{ background:var(--danger-bg); color:var(--danger); }
+.item-menu{
+  position:relative;
+  flex-shrink:0;
+  display:flex;
+  align-items:center;
+}
+
+.item-menu summary{
+  list-style:none;
+  cursor:pointer;
+  width:32px;
+  height:32px;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  color:var(--text-muted);
+  transition:color .15s;
+}
+
+.item-menu summary svg{ width:20px; height:20px; }
+.item-menu summary::-webkit-details-marker{ display:none; }
+.item-menu summary:hover{ color:var(--primary); }
+.item-menu[open] summary{ color:var(--primary); }
 
 .actions{
+  position:absolute;
+  top:42px;
+  right:0;
   display:flex;
+  flex-direction:column;
   gap:6px;
-  flex-wrap:wrap;
-  flex-shrink:0;
+  background:var(--surface);
+  border:1px solid var(--border);
+  border-radius:10px;
+  box-shadow:var(--shadow);
+  padding:8px;
+  width:min(230px,80vw);
+  z-index:5;
 }
 
 .actions button{
-  padding:8px 12px;
+  padding:9px 12px;
   font-size:13px;
-  white-space:nowrap;
+  text-align:left;
+  width:100%;
 }
 
 button.delete{ background:var(--danger-bg); color:var(--danger); }
@@ -241,6 +305,8 @@ button.move{ background:var(--warning-bg); color:var(--warning); }
 button.move:hover{ background:#f9e4a8; }
 button.copy{ background:var(--violet-bg); color:var(--violet); }
 button.copy:hover{ background:#d9c9f2; }
+button.wish-toggle{ background:var(--wish-bg); color:var(--wish); }
+button.wish-toggle:hover{ background:#f6cce4; }
 
 .empty-state{
   text-align:center;
@@ -253,9 +319,6 @@ button.copy:hover{ background:#d9c9f2; }
 
 @media(max-width:600px){
   .form-grid{ grid-template-columns:1fr; }
-  li.item{ flex-direction:column; align-items:flex-start; }
-  .actions{ width:100%; }
-  .actions button{ flex:1; }
 }
 </style>
 </head>
@@ -266,87 +329,70 @@ button.copy:hover{ background:#d9c9f2; }
 
 <div class="app-header">
   <h1>🪵 Einkaufssystem Holzwerkstatt</h1>
-  <p>Bedarf erfassen, Wünsche sammeln, Bestand im Blick behalten</p>
 </div>
 
 <div id="statusMsg"></div>
 
-<div class="tabs">
-  <button class="tab-btn active" onclick="switchTab('lists', event)">Listen</button>
-  <button class="tab-btn" onclick="switchTab('inventory', event)">📦 Inventar</button>
+<div class="toolbar">
+  <button id="addFormBtn" class="btn-add" onclick="toggleAddForm()">+ Artikel hinzufügen</button>
+  <button id="inventoryBtn" class="btn-inventory" onclick="toggleView()">📦 Inventar</button>
+</div>
+
+<div id="addForm" class="card" style="display:none;">
+  <h2>Artikel hinzufügen</h2>
+
+  <div class="form-grid">
+    <div class="full">
+      <label>Ziel-Liste</label>
+      <select id="newTarget">
+        <option value="shoppingList">🛒 Einkaufsliste</option>
+        <option value="wishList">🏗️ AG Materialbeschaffung</option>
+      </select>
+    </div>
+    <div class="full">
+      <label>Artikel</label>
+      <input id="newName" placeholder="z. B. Schleifpapier 120er" />
+    </div>
+    <div>
+      <label>Link (optional)</label>
+      <input id="newLink" placeholder="https://…" />
+    </div>
+    <div>
+      <label>Preis (optional)</label>
+      <input id="newPrice" placeholder="z. B. 12,90 €" />
+    </div>
+    <div>
+      <label>Priorität</label>
+      <select id="newPriority">
+        <option value="green">🟢 Grün</option>
+        <option value="yellow">🟡 Gelb</option>
+        <option value="red">🔴 Rot</option>
+      </select>
+    </div>
+    <div>
+      <label>Name</label>
+      <input id="newUser" placeholder="Wer trägt ein?" />
+    </div>
+  </div>
+
+  <button class="btn-primary" onclick="submitNewItem()">Hinzufügen</button>
 </div>
 
 <!-- LISTEN -->
 <div id="lists" class="tab-content active">
 
 <div class="card">
-  <h2>🛒 Einkaufsliste</h2>
+  <h2>🏗️ Einkauf AG Materialbeschaffung</h2>
+  <p class="card-subtitle">Artikel, die von der AG Materialbeschaffung bestellt werden</p>
 
-  <div class="form-grid">
-    <div class="full">
-      <label>Artikel</label>
-      <input id="itemName" placeholder="z. B. Schleifpapier 120er" />
-    </div>
-    <div>
-      <label>Link (optional)</label>
-      <input id="itemLink" placeholder="https://…" />
-    </div>
-    <div>
-      <label>Preis (optional)</label>
-      <input id="itemPrice" placeholder="z. B. 12,90 €" />
-    </div>
-    <div>
-      <label>Priorität</label>
-      <select id="itemPriority">
-        <option value="green">🟢 Grün</option>
-        <option value="yellow">🟡 Gelb</option>
-        <option value="red">🔴 Rot</option>
-      </select>
-    </div>
-    <div>
-      <label>Name</label>
-      <input id="itemUser" placeholder="Wer trägt ein?" />
-    </div>
-  </div>
-
-  <button class="btn-primary" onclick="addItem()">+ Zur Einkaufsliste hinzufügen</button>
-
-  <ul id="shoppingList" style="margin-top:16px;"></ul>
+  <ul id="wishList"></ul>
 </div>
 
 <div class="card">
-  <h2>🎁 Wunschliste</h2>
+  <h2>🛒 Einkaufsliste</h2>
+  <p class="card-subtitle">Allgemeiner Bedarf – Wunschartikel werden farblich markiert und nach unten sortiert</p>
 
-  <div class="form-grid">
-    <div class="full">
-      <label>Artikel</label>
-      <input id="wishName" placeholder="z. B. neue Oberfräse" />
-    </div>
-    <div>
-      <label>Link (optional)</label>
-      <input id="wishLink" placeholder="https://…" />
-    </div>
-    <div>
-      <label>Preis (optional)</label>
-      <input id="wishPrice" placeholder="z. B. 249 €" />
-    </div>
-    <div>
-      <label>Priorität</label>
-      <select id="wishPriority">
-        <option value="green">🟢 Grün</option>
-        <option value="yellow">🟡 Gelb</option>
-        <option value="red">🔴 Rot</option>
-      </select>
-    </div>
-    <div>
-      <label>Name</label>
-      <input id="wishUser" placeholder="Wer trägt ein?" />
-    </div>
-  </div>
-
-  <button class="btn-primary" onclick="addWish()">+ Zur Wunschliste hinzufügen</button>
-
-  <ul id="wishList" style="margin-top:16px;"></ul>
+  <ul id="shoppingList"></ul>
 </div>
 
 </div>
@@ -371,7 +417,8 @@ import {
   deleteDoc,
   doc,
   onSnapshot,
-  setDoc
+  setDoc,
+  updateDoc
 } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
 const app = initializeApp({
@@ -389,7 +436,14 @@ const shoppingRef = collection(db,"shoppingList");
 const wishRef = collection(db,"wishList");
 const inventoryRef = collection(db,"inventory");
 
-const priorityLabels = { green:"🟢 Grün", yellow:"🟡 Gelb", red:"🔴 Rot" };
+const priorityLabels = { green:"Grün", yellow:"Gelb", red:"Rot" };
+const priorityOrder = ["green","yellow","red"];
+const collectionLabels = { shoppingList:"Einkaufsliste", wishList:"AG Materialbeschaffung" };
+
+const gearIcon = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+  <circle cx="12" cy="12" r="3"></circle>
+  <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82A1.65 1.65 0 0 0 3 13.09H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"></path>
+</svg>`;
 
 /* =========================
    NORMALIZER (WICHTIG!)
@@ -401,7 +455,8 @@ function normalize(data){
     price: data.price || "",
     priority: data.priority || "green",
     user: data.user || "Unbekannt",
-    createdAt: data.createdAt || Date.now()
+    createdAt: data.createdAt || Date.now(),
+    wish: data.wish || false
   };
 }
 
@@ -418,14 +473,23 @@ function showStatus(msg, isError){
 }
 
 /* =========================
-   TAB SWITCH
+   ANSICHT UMSCHALTEN (Listen <-> Inventar)
 ========================= */
-window.switchTab = function(id, evt){
-  document.querySelectorAll(".tab-content").forEach(e=>e.classList.remove("active"));
-  document.querySelectorAll(".tab-btn").forEach(e=>e.classList.remove("active"));
+window.toggleView = function(){
+  const showInventory = !inventory.classList.contains("active");
+  lists.classList.toggle("active", !showInventory);
+  inventory.classList.toggle("active", showInventory);
+  inventoryBtn.textContent = showInventory ? "🛒 Zu den Listen" : "📦 Inventar";
+  inventoryBtn.classList.toggle("active", showInventory);
+};
 
-  document.getElementById(id).classList.add("active");
-  evt.target.classList.add("active");
+/* =========================
+   ADD-FORMULAR EIN-/AUSBLENDEN
+========================= */
+window.toggleAddForm = function(){
+  const show = addForm.style.display === "none";
+  addForm.style.display = show ? "block" : "none";
+  addFormBtn.textContent = show ? "✕ Formular schließen" : "+ Artikel hinzufügen";
 };
 
 /* =========================
@@ -442,48 +506,27 @@ async function saveToInventory(data, id){
 /* =========================
    ADD
 ========================= */
-window.addItem = async function(){
+window.submitNewItem = async function(){
   const data = normalize({
-    name:itemName.value,
-    link:itemLink.value,
-    price:itemPrice.value,
-    priority:itemPriority.value,
-    user:itemUser.value
+    name:newName.value,
+    link:newLink.value,
+    price:newPrice.value,
+    priority:newPriority.value,
+    user:newUser.value
   });
 
   if(!data.name || !data.user) return;
 
-  try {
-    const shopRef = await addDoc(shoppingRef, data);
-    await saveToInventory(data, shopRef.id);
-    showStatus("✅ Gespeichert: " + data.name, false);
-    itemName.value="";
-    itemLink.value="";
-    itemPrice.value="";
-  } catch(e) {
-    showStatus("❌ Fehler beim Speichern: " + e.message, true);
-    console.error(e);
-  }
-};
-
-window.addWish = async function(){
-  const data = normalize({
-    name:wishName.value,
-    link:wishLink.value,
-    price:wishPrice.value,
-    priority:wishPriority.value,
-    user:wishUser.value
-  });
-
-  if(!data.name || !data.user) return;
+  const target = newTarget.value;
+  const targetRef = target === "shoppingList" ? shoppingRef : wishRef;
 
   try {
-    const wRef = await addDoc(wishRef, data);
-    await saveToInventory(data, wRef.id);
-    showStatus("✅ Gespeichert: " + data.name, false);
-    wishName.value="";
-    wishLink.value="";
-    wishPrice.value="";
+    const ref = await addDoc(targetRef, data);
+    await saveToInventory(data, ref.id);
+    showStatus(`✅ Gespeichert in ${collectionLabels[target]}: ` + data.name, false);
+    newName.value="";
+    newLink.value="";
+    newPrice.value="";
   } catch(e) {
     showStatus("❌ Fehler beim Speichern: " + e.message, true);
     console.error(e);
@@ -496,10 +539,40 @@ window.addWish = async function(){
 async function move(data,id,from){
   const targetCollection = from==="shoppingList" ? "wishList" : "shoppingList";
   const normalized = normalize(data);
+  normalized.wish = false;
 
   await setDoc(doc(db, targetCollection, id), normalized);
   await saveToInventory(normalized, id);
   await deleteDoc(doc(db, from, id));
+}
+
+/* =========================
+   WUNSCHARTIKEL TOGGLE (nur Einkaufsliste)
+========================= */
+async function toggleWish(data,id){
+  const newWish = !data.wish;
+  await updateDoc(doc(db,"shoppingList",id), { wish:newWish });
+  await saveToInventory({ ...data, wish:newWish }, id);
+}
+
+/* =========================
+   PRIORITÄT DURCHSCHALTEN (Klick auf Farbfläche)
+========================= */
+async function cyclePriority(collection,data,id){
+  const next = priorityOrder[(priorityOrder.indexOf(data.priority)+1) % priorityOrder.length];
+  await updateDoc(doc(db,collection,id), { priority:next });
+  if(collection !== "inventory"){
+    await saveToInventory({ ...data, priority:next }, id);
+  }
+}
+
+function createPrioritySwatch(collection,data,id){
+  const swatch = document.createElement("button");
+  swatch.className = "priority-swatch " + data.priority;
+  swatch.title = `Priorität: ${priorityLabels[data.priority] || data.priority} (klicken zum Ändern)`;
+  swatch.setAttribute("aria-label", "Priorität ändern");
+  swatch.onclick = () => cyclePriority(collection,data,id);
+  return swatch;
 }
 
 /* =========================
@@ -514,41 +587,60 @@ async function copyTo(target, data, id){
 ========================= */
 function render(data,id,collection){
   const li = document.createElement("li");
-  li.className = "item";
+  li.className = "item" + (collection==="shoppingList" && data.wish ? " wish" : "");
 
   const info = document.createElement("div");
   info.className="item-info";
 
   info.innerHTML=`
-    <strong>${data.name}</strong>
-    <span class="priority ${data.priority}">${priorityLabels[data.priority] || data.priority}</span>
+    <strong class="item-name">${data.name}</strong>
+    ${collection==="shoppingList" && data.wish ? `<div class="badges"><span class="badge-wish">🎁 Wunschartikel</span></div>` : ""}
     <div class="item-meta">
-      <span>👤 ${data.user}</span>
-      <span>📅 ${new Date(data.createdAt).toLocaleDateString()}</span>
-      ${data.price ? `<span>💶 ${data.price}</span>` : ""}
-      ${data.link ? `<a href="${data.link}" target="_blank" rel="noopener">🔗 Link</a>` : ""}
+      <span><b>Name:</b> ${data.user}</span>
+      <span><b>Datum:</b> ${new Date(data.createdAt).toLocaleDateString()}</span>
+      ${data.price ? `<span><b>Preis:</b> ${data.price}</span>` : ""}
+      ${data.link ? `<a href="${data.link}" target="_blank" rel="noopener"><b>Link:</b> 🔗</a>` : ""}
     </div>
   `;
+
+  const swatch = createPrioritySwatch(collection,data,id);
+
+  const menu = document.createElement("details");
+  menu.className="item-menu";
+
+  const summary = document.createElement("summary");
+  summary.innerHTML=gearIcon;
+  summary.setAttribute("aria-label","Aktionen");
+  menu.append(summary);
 
   const actions = document.createElement("div");
   actions.className="actions";
 
+  if(collection==="shoppingList"){
+    const wishBtn = document.createElement("button");
+    wishBtn.className="wish-toggle";
+    wishBtn.textContent = data.wish ? "🛒 Zur Einkaufsliste" : "🎁 Als Wunsch markieren";
+    wishBtn.onclick=()=>toggleWish(data,id);
+    actions.append(wishBtn);
+  }
+
   const moveBtn = document.createElement("button");
   moveBtn.className="move";
-  moveBtn.textContent = collection==="shoppingList" ? "➡️ Wunsch" : "⬅️ Einkauf";
+  moveBtn.textContent = collection==="shoppingList" ? "🏗️ Zur Materialbeschaffung" : "🛒 Zur Einkaufsliste";
   moveBtn.onclick=()=>move(data,id,collection);
 
   const del = document.createElement("button");
   del.className="delete";
-  del.textContent="✕";
+  del.textContent="🗑️ Artikel löschen";
   del.onclick = async () => {
     await saveToInventory(data, id);
     await deleteDoc(doc(db, collection, id));
   };
 
   actions.append(moveBtn,del);
+  menu.append(actions);
 
-  li.append(info,actions);
+  li.append(swatch,info,menu);
   return li;
 }
 
@@ -562,36 +654,47 @@ function renderInv(data,id){
   const info=document.createElement("div");
   info.className="item-info";
   info.innerHTML=`
-    <strong>${data.name}</strong>
-    <span class="priority ${data.priority}">${priorityLabels[data.priority] || data.priority}</span>
+    <strong class="item-name">${data.name}</strong>
+    ${data.wish ? `<div class="badges"><span class="badge-wish">🎁 Wunschartikel</span></div>` : ""}
     <div class="item-meta">
-      <span>👤 ${data.user}</span>
-      ${data.price ? `<span>💶 ${data.price}</span>` : ""}
-      ${data.link ? `<a href="${data.link}" target="_blank" rel="noopener">🔗 Link</a>` : ""}
+      <span><b>Name:</b> ${data.user}</span>
+      ${data.price ? `<span><b>Preis:</b> ${data.price}</span>` : ""}
+      ${data.link ? `<a href="${data.link}" target="_blank" rel="noopener"><b>Link:</b> 🔗</a>` : ""}
     </div>
   `;
+
+  const swatch = createPrioritySwatch("inventory",data,id);
+
+  const menu=document.createElement("details");
+  menu.className="item-menu";
+
+  const summary=document.createElement("summary");
+  summary.innerHTML=gearIcon;
+  summary.setAttribute("aria-label","Aktionen");
+  menu.append(summary);
 
   const actions=document.createElement("div");
   actions.className="actions";
 
   const toShop=document.createElement("button");
   toShop.className="copy";
-  toShop.textContent="🛒 Einkauf";
+  toShop.textContent="🛒 Zur Einkaufsliste";
   toShop.onclick=()=>copyTo("shoppingList",data,id);
 
   const toWish=document.createElement("button");
   toWish.className="copy";
-  toWish.textContent="🎁 Wunsch";
+  toWish.textContent="🏗️ Zur Materialbeschaffung";
   toWish.onclick=()=>copyTo("wishList",data,id);
 
   const del=document.createElement("button");
   del.className="delete";
-  del.textContent="✕";
+  del.textContent="🗑️ Artikel löschen";
   del.onclick=()=>deleteDoc(doc(db,"inventory",id));
 
   actions.append(toShop,toWish,del);
+  menu.append(actions);
 
-  li.append(info,actions);
+  li.append(swatch,info,menu);
   return li;
 }
 
@@ -608,12 +711,18 @@ function renderEmptyState(text){
 onSnapshot(shoppingRef, s=>{
   shoppingList.innerHTML="";
   if(s.empty){ shoppingList.appendChild(renderEmptyState("Noch keine Artikel auf der Einkaufsliste.")); return; }
-  s.forEach(d=>shoppingList.appendChild(render(d.data(),d.id,"shoppingList")));
+  const docs = s.docs.map(d=>({data:d.data(), id:d.id}));
+  docs.sort((a,b)=>{
+    const w = (a.data.wish?1:0) - (b.data.wish?1:0);
+    if(w !== 0) return w;
+    return (a.data.createdAt||0) - (b.data.createdAt||0);
+  });
+  docs.forEach(({data,id})=>shoppingList.appendChild(render(data,id,"shoppingList")));
 }, e=>showStatus("❌ Firebase-Verbindungsfehler: " + e.message, true));
 
 onSnapshot(wishRef, s=>{
   wishList.innerHTML="";
-  if(s.empty){ wishList.appendChild(renderEmptyState("Noch keine Wünsche eingetragen.")); return; }
+  if(s.empty){ wishList.appendChild(renderEmptyState("Noch keine Artikel für die AG Materialbeschaffung eingetragen.")); return; }
   s.forEach(d=>wishList.appendChild(render(d.data(),d.id,"wishList")));
 }, e=>showStatus("❌ Firebase-Verbindungsfehler: " + e.message, true));
 
