@@ -24,6 +24,10 @@
   --wish:#a3226e;
   --wish-bg:#fbe2ef;
   --wish-item-bg:#fdf3f8;
+  --maren:#2f6fbf;
+  --maren-bg:#e1ebf9;
+  --luisa:#0e7c86;
+  --luisa-bg:#dcf0f1;
   --radius:10px;
   --shadow:0 1px 3px rgba(43,34,20,0.08),0 1px 2px rgba(43,34,20,0.05);
 }
@@ -172,6 +176,7 @@ button:active{ transform:scale(0.97); }
 ul{ list-style:none; padding:0; margin:0; display:flex; flex-direction:column; gap:10px; }
 
 li.item{
+  position:relative;
   display:flex;
   justify-content:space-between;
   align-items:stretch;
@@ -181,6 +186,28 @@ li.item{
   border:1px solid var(--border);
   border-radius:var(--radius);
 }
+
+.mark-badges{
+  position:absolute;
+  top:-9px;
+  right:14px;
+  display:flex;
+  gap:4px;
+  z-index:2;
+}
+
+.mark-badge{
+  font-size:10.5px;
+  font-weight:700;
+  padding:3px 9px;
+  border-radius:20px;
+  color:#fff;
+  box-shadow:var(--shadow);
+  white-space:nowrap;
+}
+
+.mark-badge.maren{ background:var(--maren); }
+.mark-badge.luisa{ background:var(--luisa); }
 
 li.item.wish{
   background:var(--wish-item-bg);
@@ -403,6 +430,12 @@ button.edit{ background:var(--violet-bg); color:var(--violet); }
 button.edit:hover{ background:#d9c9f2; }
 button.buy{ background:#ddf0e1; color:#1f6b3f; }
 button.buy:hover{ background:#c9e8d1; }
+button.mark.maren{ background:var(--maren-bg); color:var(--maren); }
+button.mark.maren:hover{ background:#cfe0f5; }
+button.mark.maren.active{ background:var(--maren); color:#fff; }
+button.mark.luisa{ background:var(--luisa-bg); color:var(--luisa); }
+button.mark.luisa:hover{ background:#c9e9eb; }
+button.mark.luisa.active{ background:var(--luisa); color:#fff; }
 
 .form-actions{
   display:flex;
@@ -624,8 +657,19 @@ const db = getFirestore(app);
 emailjs.init({ publicKey: "Xw64xfgG6oXwYMl_v" });
 const EMAILJS_SERVICE_ID = "service_yiteq5v";
 const EMAILJS_TEMPLATE_ID = "template_v6em95j";
+const EMAILJS_CLAIM_TEMPLATE_ID = "template_mwsrvim";
 
 const priorityEmoji = { green:"🟢", yellow:"🟡", red:"🔴" };
+const claimerName = { markedMaren:"Maren", markedLuisa:"Luisa" };
+const claimGreetName = { markedMaren:"Luisa", markedLuisa:"Maren" };
+
+function notifyClaim(data,field){
+  emailjs.send(EMAILJS_SERVICE_ID, EMAILJS_CLAIM_TEMPLATE_ID, {
+    item_name: data.name,
+    claimer: claimerName[field],
+    greet_name: claimGreetName[field]
+  }).catch(e => console.error("EmailJS Fehler (Claim):", e));
+}
 
 function notifyWishListAdd(data){
   emailjs.send(EMAILJS_SERVICE_ID, EMAILJS_TEMPLATE_ID, {
@@ -669,7 +713,9 @@ function normalize(data){
     wish: data.wish || false,
     order: data.order ?? data.createdAt ?? Date.now(),
     purchased: data.purchased || false,
-    purchasedAt: data.purchasedAt || null
+    purchasedAt: data.purchasedAt || null,
+    markedMaren: data.markedMaren || false,
+    markedLuisa: data.markedLuisa || false
   };
 }
 
@@ -1029,11 +1075,45 @@ async function restorePurchased(collection,data,id){
 }
 
 /* =========================
+   ZUSTÄNDIGKEIT MARKIEREN (Maren / Luisa)
+========================= */
+async function toggleMark(collection,data,id,field){
+  const value = !data[field];
+  await updateDoc(doc(db,collection,id), { [field]:value });
+  if(collection !== "inventory"){
+    await saveToInventory({ ...data, [field]:value }, id);
+  }
+  if(value) notifyClaim(data,field);
+}
+
+function createMarkBadges(data){
+  const wrap = document.createElement("div");
+  wrap.className = "mark-badges";
+  if(data.markedMaren){
+    const b = document.createElement("span");
+    b.className = "mark-badge maren";
+    b.textContent = "Maren";
+    wrap.append(b);
+  }
+  if(data.markedLuisa){
+    const b = document.createElement("span");
+    b.className = "mark-badge luisa";
+    b.textContent = "Luisa";
+    wrap.append(b);
+  }
+  return wrap;
+}
+
+/* =========================
    RENDER ITEM
 ========================= */
 function render(data,id,collection,docs,index){
   const li = document.createElement("li");
   li.className = "item" + (collection==="shoppingList" && data.wish ? " wish" : "");
+
+  if(data.markedMaren || data.markedLuisa){
+    li.append(createMarkBadges(data));
+  }
 
   const info = document.createElement("div");
   info.className="item-info";
@@ -1075,6 +1155,18 @@ function render(data,id,collection,docs,index){
   buyBtn.textContent="✅ Als gekauft markieren";
   buyBtn.onclick=()=>markPurchased(collection,data,id);
   actions.append(buyBtn);
+
+  const marenBtn = document.createElement("button");
+  marenBtn.className = "mark maren" + (data.markedMaren ? " active" : "");
+  marenBtn.textContent = (data.markedMaren ? "✓ " : "") + "🙋 Maren kümmert sich";
+  marenBtn.onclick = () => toggleMark(collection,data,id,"markedMaren");
+  actions.append(marenBtn);
+
+  const luisaBtn = document.createElement("button");
+  luisaBtn.className = "mark luisa" + (data.markedLuisa ? " active" : "");
+  luisaBtn.textContent = (data.markedLuisa ? "✓ " : "") + "🙋 Luisa kümmert sich";
+  luisaBtn.onclick = () => toggleMark(collection,data,id,"markedLuisa");
+  actions.append(luisaBtn);
 
   if(collection==="shoppingList"){
     const wishBtn = document.createElement("button");
