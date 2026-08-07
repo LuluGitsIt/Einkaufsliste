@@ -496,30 +496,30 @@ button.buy:hover{ background:#c9e8d1; }
 
   <div class="form-grid">
     <div class="full" id="targetField">
-      <label>Ziel-Liste</label>
+      <label for="newTarget">Ziel-Liste</label>
       <select id="newTarget">
         <option value="shoppingList">🛒 Einkaufsliste</option>
         <option value="wishList">🏗️ AG Materialbeschaffung</option>
       </select>
     </div>
     <div class="full">
-      <label>Artikel</label>
+      <label for="newName">Artikel</label>
       <input id="newName" placeholder="z. B. Schleifpapier 120er" />
     </div>
     <div>
-      <label>Menge (optional)</label>
+      <label for="newAmount">Menge (optional)</label>
       <input id="newAmount" placeholder="z. B. 2x" />
     </div>
     <div>
-      <label>Link (optional)</label>
+      <label for="newLink">Link (optional)</label>
       <input id="newLink" placeholder="https://…" />
     </div>
     <div>
-      <label>Preis (optional)</label>
+      <label for="newPrice">Preis (optional)</label>
       <input id="newPrice" placeholder="z. B. 12,90 €" />
     </div>
     <div>
-      <label>Priorität</label>
+      <label for="newPriority">Priorität</label>
       <select id="newPriority">
         <option value="green">🟢 Grün</option>
         <option value="yellow">🟡 Gelb</option>
@@ -527,7 +527,7 @@ button.buy:hover{ background:#c9e8d1; }
       </select>
     </div>
     <div>
-      <label>Name</label>
+      <label for="newUser">Name</label>
       <input id="newUser" placeholder="Wer trägt ein?" />
     </div>
   </div>
@@ -608,6 +608,7 @@ import {
   setDoc,
   updateDoc
 } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+import emailjs from "https://cdn.jsdelivr.net/npm/@emailjs/browser@4/+esm";
 
 const app = initializeApp({
   apiKey: "AIzaSyBP3oj8MkzyDxiFWygr7xPN4ixUbPoEVBM",
@@ -619,6 +620,23 @@ const app = initializeApp({
 });
 
 const db = getFirestore(app);
+
+emailjs.init({ publicKey: "Xw64xfgG6oXwYMl_v" });
+const EMAILJS_SERVICE_ID = "service_yiteq5v";
+const EMAILJS_TEMPLATE_ID = "template_v6em95j";
+
+const priorityEmoji = { green:"🟢", yellow:"🟡", red:"🔴" };
+
+function notifyWishListAdd(data){
+  emailjs.send(EMAILJS_SERVICE_ID, EMAILJS_TEMPLATE_ID, {
+    item_name: data.name,
+    amount: data.amount || "-",
+    price: data.price || "-",
+    link: data.link || "-",
+    user: data.user,
+    priority: `${priorityEmoji[data.priority] || ""} ${priorityLabels[data.priority] || data.priority}`.trim()
+  }).catch(e => console.error("EmailJS Fehler:", e));
+}
 
 const shoppingRef = collection(db,"shoppingList");
 const wishRef = collection(db,"wishList");
@@ -813,6 +831,7 @@ window.submitNewItem = async function(){
       const targetRef = target === "shoppingList" ? shoppingRef : wishRef;
       const ref = await addDoc(targetRef, data);
       await saveToInventory(data, ref.id);
+      if(target === "wishList") notifyWishListAdd(data);
       showStatus(`✅ Gespeichert in ${collectionLabels[target]}: ` + data.name, false);
       newName.value="";
       newLink.value="";
@@ -835,6 +854,7 @@ async function move(data,id,from){
   await setDoc(doc(db, targetCollection, id), normalized);
   await saveToInventory(normalized, id);
   await deleteDoc(doc(db, from, id));
+  if(targetCollection === "wishList") notifyWishListAdd(normalized);
 }
 
 /* =========================
@@ -988,7 +1008,9 @@ window.sortShoppingList = async function(criterion){
    COPY FROM INVENTORY (gleiche ID -> kein Duplikat im Inventar)
 ========================= */
 async function copyTo(target, data, id){
-  await setDoc(doc(db, target, id), normalize(data));
+  const normalized = normalize(data);
+  await setDoc(doc(db, target, id), normalized);
+  if(target === "wishList") notifyWishListAdd(normalized);
 }
 
 /* =========================
