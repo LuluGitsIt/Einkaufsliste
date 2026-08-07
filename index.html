@@ -93,6 +93,36 @@ body{
 .btn-inventory:hover{ background:var(--bg); }
 .btn-inventory.active{ background:var(--primary); color:#fff; border-color:var(--primary); }
 
+.machine-grid{
+  display:flex;
+  flex-wrap:wrap;
+  gap:22px;
+  justify-content:center;
+}
+
+.machine-item{
+  display:flex;
+  flex-direction:column;
+  align-items:center;
+  gap:8px;
+  width:100px;
+  text-align:center;
+}
+
+.machine-photo{
+  width:84px;
+  height:84px;
+  border-radius:50%;
+  background:var(--bg);
+  border:1px solid var(--border);
+}
+
+.machine-name{
+  font-size:12.5px;
+  font-weight:600;
+  color:var(--text);
+}
+
 .tab-content{ display:none; }
 .tab-content.active{ display:block; }
 
@@ -521,7 +551,8 @@ button.mark.luisa.active{ background:var(--luisa); color:#fff; }
 
 <div class="toolbar">
   <button id="addFormBtn" class="btn-add" onclick="toggleAddForm()">+ Artikel hinzufügen</button>
-  <button id="inventoryBtn" class="btn-inventory" onclick="toggleView()">📦 Inventar</button>
+  <button id="inventoryBtn" class="btn-inventory" onclick="showTab('inventory')">📦 Inventar</button>
+  <button id="machinesBtn" class="btn-inventory" onclick="showTab('machines')">🛠️ Maschinen</button>
 </div>
 
 <div id="addForm" class="card" style="display:none;">
@@ -631,6 +662,14 @@ button.mark.luisa.active{ background:var(--luisa); color:#fff; }
   <div class="card">
     <h2>📦 Inventar</h2>
     <ul id="inventoryList"></ul>
+  </div>
+</div>
+
+<!-- MASCHINEN -->
+<div id="machines" class="tab-content">
+  <div class="card">
+    <h2>🛠️ Maschinen</h2>
+    <div class="machine-grid" id="machineGrid"></div>
   </div>
 </div>
 
@@ -786,14 +825,22 @@ function showStatus(msg, isError){
 }
 
 /* =========================
-   ANSICHT UMSCHALTEN (Listen <-> Inventar)
+   ANSICHT UMSCHALTEN (Listen <-> Inventar <-> Maschinen)
 ========================= */
-window.toggleView = function(){
-  const showInventory = !inventory.classList.contains("active");
-  lists.classList.toggle("active", !showInventory);
-  inventory.classList.toggle("active", showInventory);
-  inventoryBtn.textContent = showInventory ? "🛒 Zu den Listen" : "📦 Inventar";
-  inventoryBtn.classList.toggle("active", showInventory);
+window.showTab = function(tab){
+  const current = inventory.classList.contains("active") ? "inventory"
+    : machines.classList.contains("active") ? "machines" : "lists";
+  const next = current === tab ? "lists" : tab;
+
+  lists.classList.toggle("active", next==="lists");
+  inventory.classList.toggle("active", next==="inventory");
+  machines.classList.toggle("active", next==="machines");
+
+  inventoryBtn.textContent = next==="inventory" ? "🛒 Zu den Listen" : "📦 Inventar";
+  inventoryBtn.classList.toggle("active", next==="inventory");
+
+  machinesBtn.textContent = next==="machines" ? "🛒 Zu den Listen" : "🛠️ Maschinen";
+  machinesBtn.classList.toggle("active", next==="machines");
 };
 
 /* =========================
@@ -1358,6 +1405,30 @@ function renderTrash(){
   }
   all.forEach(({data,id,collection})=>purchasedList.appendChild(renderPurchased(data,id,collection)));
 }
+
+/* =========================
+   MASCHINEN (Maschinenpatenschaften)
+========================= */
+const machineNames = [
+  "Stichsäge","Tauchsäge","Dekupiersäge","Standbohrmaschine","Dremel",
+  "Akkuschrauber","Oberfräse","Lamellofräse","Schwingschleifer","Exzenterschleifer",
+  "Kantenschleifer","Bandsäge","Kappsäge","mob. Tischkreissäge","Tischkreissäge",
+  "Abrichte/Dickenhobel","Staubsauger","(Nass-)Schleifmaschine","Weitere Kleingeräte"
+];
+
+function renderMachines(){
+  machineGrid.innerHTML = "";
+  machineNames.forEach(name=>{
+    const item = document.createElement("div");
+    item.className = "machine-item";
+    item.innerHTML = `
+      <span class="machine-name">${name}</span>
+      <div class="machine-photo"></div>
+    `;
+    machineGrid.appendChild(item);
+  });
+}
+renderMachines();
 
 /* =========================
    LIVE SYNC
