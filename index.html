@@ -776,7 +776,7 @@ button.mark.luisa.active{ background:var(--luisa); color:#fff; }
           </svg>
         </summary>
         <div class="actions" id="machinesOptionsMenu" style="width:min(280px,85vw);">
-          <button onclick="toggleAddMachineForm()">+ Maschine hinzufügen</button>
+          <button onclick="toggleAddMachineForm()">+ Maschinenklasse hinzufügen</button>
           <div style="border-top:1px solid var(--border);margin:4px 0;"></div>
           <label style="font-size:11px;font-weight:700;text-transform:uppercase;color:var(--text-muted);">Artikel</label>
           <select id="assignArticleSelect"></select>
@@ -789,8 +789,12 @@ button.mark.luisa.active{ background:var(--luisa); color:#fff; }
 
     <div id="addMachineForm" class="form-grid" style="display:none;margin-bottom:16px;">
       <div class="full">
-        <label for="newMachineName">Name der neuen Maschine</label>
+        <label for="newMachineName">Name der neuen Maschinenklasse</label>
         <input id="newMachineName" placeholder="z. B. Kreissäge Werkstatt 2" />
+      </div>
+      <div class="full">
+        <label for="newMachinePhotoInput">Foto (optional)</label>
+        <input type="file" id="newMachinePhotoInput" accept="image/*" capture="environment" />
       </div>
       <div class="full form-actions">
         <button class="btn-primary" onclick="submitNewMachine()">Hinzufügen</button>
@@ -807,7 +811,7 @@ button.mark.luisa.active{ background:var(--luisa); color:#fff; }
   <div class="card">
     <div style="display:flex;justify-content:space-between;align-items:center;gap:10px;">
       <button class="header-btn" onclick="backToMachines()">← Zurück zur Übersicht</button>
-      <details class="item-menu">
+      <details class="item-menu" id="machineDetailMenu">
         <summary title="Optionen">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
             <circle cx="12" cy="12" r="3"></circle>
@@ -816,9 +820,11 @@ button.mark.luisa.active{ background:var(--luisa); color:#fff; }
         </summary>
         <div class="actions">
           <button onclick="toggleAddSubMachineForm()">+ Gerät hinzufügen</button>
+          <button onclick="machineClassPhotoInput.click()">📷 Foto ändern</button>
           <button class="delete" onclick="deleteMachineClass()">🗑️ Maschine löschen</button>
         </div>
       </details>
+      <input type="file" id="machineClassPhotoInput" accept="image/*" capture="environment" style="display:none;" onchange="handleMachineClassPhotoChange(event)" />
     </div>
 
     <div id="addSubMachineForm" class="form-grid" style="display:none;margin:20px 0 0;">
@@ -1063,6 +1069,22 @@ window.deleteMachineClass = async function(){
   await deleteDoc(doc(machinesRef, slug));
   showStatus("🗑️ Maschine gelöscht", false);
   backToMachines();
+};
+
+window.handleMachineClassPhotoChange = async function(event){
+  const file = event.target.files[0];
+  event.target.value = "";
+  if(!file || !currentMachine) return;
+  const slug = machineSlug(currentMachine);
+  try {
+    showStatus("⏳ Foto wird hochgeladen…", false);
+    const url = await uploadToCloudinary(file);
+    const existing = machineInfoCache[slug] || {};
+    await setDoc(doc(machinesRef, slug), normalizeMachineInfo({ ...existing, photoUrl:url }));
+    showStatus("✅ Foto gespeichert", false);
+  } catch(e){
+    showStatus("❌ Foto-Upload fehlgeschlagen: " + e.message, true);
+  }
 };
 
 /* =========================
@@ -1964,7 +1986,10 @@ function renderMachines(){
 window.toggleAddMachineForm = function(){
   const show = addMachineForm.style.display === "none";
   addMachineForm.style.display = show ? "grid" : "none";
-  if(show) newMachineName.value = "";
+  if(show){
+    newMachineName.value = "";
+    newMachinePhotoInput.value = "";
+  }
   machinesMenu.open = false;
 };
 
@@ -1972,12 +1997,23 @@ window.submitNewMachine = async function(){
   const name = newMachineName.value.trim();
   if(!name) return;
   const slug = machineSlug(name);
+  let photoUrl = "";
+  const file = newMachinePhotoInput.files[0];
+  if(file){
+    try {
+      showStatus("⏳ Foto wird hochgeladen…", false);
+      photoUrl = await uploadToCloudinary(file);
+    } catch(e){
+      showStatus("❌ Foto-Upload fehlgeschlagen: " + e.message, true);
+    }
+  }
   await setDoc(doc(machinesRef, slug), normalizeMachineInfo({
     name,
     groupId: slug,
+    photoUrl,
     createdAt: Date.now()
   }));
-  showStatus("✅ Maschine hinzugefügt: " + name, false);
+  showStatus("✅ Maschinenklasse hinzugefügt: " + name, false);
   toggleAddMachineForm();
 };
 
