@@ -533,6 +533,7 @@ button.mark.luisa.active{ background:var(--luisa); color:#fff; }
       <select id="newTarget">
         <option value="shoppingList">🛒 Einkaufsliste</option>
         <option value="wishList">🏗️ AG Materialbeschaffung</option>
+        <option value="fundingList">📝 Förderantrag</option>
       </select>
     </div>
     <div class="full">
@@ -600,6 +601,16 @@ button.mark.luisa.active{ background:var(--luisa); color:#fff; }
   </div>
 
   <ul id="shoppingList"></ul>
+</div>
+
+<div class="card">
+  <div class="card-header">
+    <span></span>
+    <h2>📝 Förderantrag</h2>
+    <span></span>
+  </div>
+
+  <ul id="fundingList"></ul>
 </div>
 
 <details class="card trash-card" id="trashCard">
@@ -684,11 +695,20 @@ function notifyWishListAdd(data){
 
 const shoppingRef = collection(db,"shoppingList");
 const wishRef = collection(db,"wishList");
+const fundingRef = collection(db,"fundingList");
 const inventoryRef = collection(db,"inventory");
 
 const priorityLabels = { green:"Grün", yellow:"Gelb", red:"Rot" };
 const priorityOrder = ["green","yellow","red"];
-const collectionLabels = { shoppingList:"Einkaufsliste", wishList:"AG Materialbeschaffung" };
+const collectionLabels = { shoppingList:"Einkaufsliste", wishList:"AG Materialbeschaffung", fundingList:"Förderantrag" };
+
+const moveOptions = {
+  shoppingList: [ ["wishList","🏗️ Zur Materialbeschaffung"], ["fundingList","📝 Zum Förderantrag"] ],
+  wishList: [ ["shoppingList","🛒 Zur Einkaufsliste"], ["fundingList","📝 Zum Förderantrag"] ],
+  fundingList: [ ["shoppingList","🛒 Zur Einkaufsliste"], ["wishList","🏗️ Zur Materialbeschaffung"] ]
+};
+
+const collectionRefs = { shoppingList:shoppingRef, wishList:wishRef, fundingList:fundingRef };
 
 const gearIcon = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
   <circle cx="12" cy="12" r="3"></circle>
@@ -874,7 +894,7 @@ window.submitNewItem = async function(){
       window.cancelEdit();
     } else {
       const target = newTarget.value;
-      const targetRef = target === "shoppingList" ? shoppingRef : wishRef;
+      const targetRef = collectionRefs[target];
       const ref = await addDoc(targetRef, data);
       await saveToInventory(data, ref.id);
       if(target === "wishList") notifyWishListAdd(data);
@@ -892,15 +912,14 @@ window.submitNewItem = async function(){
 /* =========================
    MOVE (gleiche ID im Ziel -> kein Duplikat im Inventar)
 ========================= */
-async function move(data,id,from){
-  const targetCollection = from==="shoppingList" ? "wishList" : "shoppingList";
+async function move(data,id,from,to){
   const normalized = normalize(data);
   normalized.wish = false;
 
-  await setDoc(doc(db, targetCollection, id), normalized);
+  await setDoc(doc(db, to, id), normalized);
   await saveToInventory(normalized, id);
   await deleteDoc(doc(db, from, id));
-  if(targetCollection === "wishList") notifyWishListAdd(normalized);
+  if(to === "wishList") notifyWishListAdd(normalized);
 }
 
 /* =========================
@@ -1176,10 +1195,13 @@ function render(data,id,collection,docs,index){
     actions.append(wishBtn);
   }
 
-  const moveBtn = document.createElement("button");
-  moveBtn.className="move";
-  moveBtn.textContent = collection==="shoppingList" ? "🏗️ Zur Materialbeschaffung" : "🛒 Zur Einkaufsliste";
-  moveBtn.onclick=()=>move(data,id,collection);
+  (moveOptions[collection] || []).forEach(([target,label])=>{
+    const moveBtn = document.createElement("button");
+    moveBtn.className="move";
+    moveBtn.textContent = label;
+    moveBtn.onclick = () => move(data,id,collection,target);
+    actions.append(moveBtn);
+  });
 
   const del = document.createElement("button");
   del.className="delete";
@@ -1189,7 +1211,7 @@ function render(data,id,collection,docs,index){
     await deleteDoc(doc(db, collection, id));
   };
 
-  actions.append(moveBtn,del);
+  actions.append(del);
   menu.append(actions);
 
   li.append(swatch,info,reorder,menu);
@@ -1245,12 +1267,17 @@ function renderInv(data,id){
   toWish.textContent="🏗️ Zur Materialbeschaffung";
   toWish.onclick=()=>copyTo("wishList",data,id);
 
+  const toFunding=document.createElement("button");
+  toFunding.className="copy";
+  toFunding.textContent="📝 Zum Förderantrag";
+  toFunding.onclick=()=>copyTo("fundingList",data,id);
+
   const del=document.createElement("button");
   del.className="delete";
   del.textContent="🗑️ Artikel löschen";
   del.onclick=()=>deleteDoc(doc(db,"inventory",id));
 
-  actions.append(toShop,toWish,del);
+  actions.append(toShop,toWish,toFunding,del);
   menu.append(actions);
 
   li.append(swatch,info,menu);
@@ -1318,9 +1345,10 @@ function renderPurchased(data,id,collection){
 
 let purchasedShoppingCache = [];
 let purchasedWishCache = [];
+let purchasedFundingCache = [];
 
 function renderTrash(){
-  const all = [...purchasedShoppingCache, ...purchasedWishCache];
+  const all = [...purchasedShoppingCache, ...purchasedWishCache, ...purchasedFundingCache];
   all.sort((a,b)=>(b.data.purchasedAt||0)-(a.data.purchasedAt||0));
   trashCount.textContent = all.length;
   purchasedList.innerHTML="";
@@ -1369,6 +1397,21 @@ onSnapshot(wishRef, s=>{
   }
   wishDocsCache = docs;
   updateWishTotal(docs);
+  renderTrash();
+}, e=>showStatus("❌ Firebase-Verbindungsfehler: " + e.message, true));
+
+onSnapshot(fundingRef, s=>{
+  const allDocs = s.docs.map(d=>({data:d.data(), id:d.id}));
+  purchasedFundingCache = allDocs.filter(d=>d.data.purchased).map(d=>({...d, collection:"fundingList"}));
+  const docs = allDocs.filter(d=>!d.data.purchased);
+
+  fundingList.innerHTML="";
+  if(docs.length===0){
+    fundingList.appendChild(renderEmptyState("Noch keine Artikel für den Förderantrag eingetragen."));
+  } else {
+    docs.sort((a,b)=>(a.data.order ?? a.data.createdAt ?? 0) - (b.data.order ?? b.data.createdAt ?? 0));
+    docs.forEach(({data,id},index)=>fundingList.appendChild(render(data,id,"fundingList",docs,index)));
+  }
   renderTrash();
 }, e=>showStatus("❌ Firebase-Verbindungsfehler: " + e.message, true));
 
