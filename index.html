@@ -180,6 +180,35 @@ body{
 
 .machine-links a:hover{ text-decoration:underline; }
 
+.gerat-card{
+  border:1px solid var(--border);
+  border-radius:var(--radius);
+  padding:24px 16px;
+  margin-bottom:20px;
+  background:var(--bg);
+}
+
+.gerat-card:last-child{ margin-bottom:0; }
+
+.photo-edit-btn{
+  position:absolute;
+  bottom:2px;
+  right:2px;
+  width:36px;
+  height:36px;
+  border-radius:50%;
+  background:var(--surface);
+  border:1px solid var(--border);
+  box-shadow:var(--shadow);
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  font-size:15px;
+  padding:0;
+}
+
+.photo-edit-btn:hover{ background:var(--bg); }
+
 .tab-content{ display:none; }
 .tab-content.active{ display:block; }
 
@@ -735,7 +764,39 @@ button.mark.luisa.active{ background:var(--luisa); color:#fff; }
 <!-- MASCHINEN -->
 <div id="machines" class="tab-content">
   <div class="card">
-    <h2>🛠️ Maschinen</h2>
+    <div class="card-header">
+      <span></span>
+      <h2>🛠️ Maschinen</h2>
+      <details class="item-menu" id="machinesMenu" style="justify-self:end;">
+        <summary title="Optionen">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <circle cx="12" cy="12" r="3"></circle>
+            <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82A1.65 1.65 0 0 0 3 13.09H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"></path>
+          </svg>
+        </summary>
+        <div class="actions" id="machinesOptionsMenu" style="width:min(280px,85vw);">
+          <button onclick="toggleAddMachineForm()">+ Maschine hinzufügen</button>
+          <div style="border-top:1px solid var(--border);margin:4px 0;"></div>
+          <label style="font-size:11px;font-weight:700;text-transform:uppercase;color:var(--text-muted);">Artikel</label>
+          <select id="assignArticleSelect"></select>
+          <label style="font-size:11px;font-weight:700;text-transform:uppercase;color:var(--text-muted);margin-top:6px;">Gerät</label>
+          <select id="assignMachineSelect"></select>
+          <button class="btn-primary" style="margin-top:10px;" onclick="assignArticleToMachine()">Zuordnen</button>
+        </div>
+      </details>
+    </div>
+
+    <div id="addMachineForm" class="form-grid" style="display:none;margin-bottom:16px;">
+      <div class="full">
+        <label for="newMachineName">Name der neuen Maschine</label>
+        <input id="newMachineName" placeholder="z. B. Kreissäge Werkstatt 2" />
+      </div>
+      <div class="full form-actions">
+        <button class="btn-primary" onclick="submitNewMachine()">Hinzufügen</button>
+        <button class="btn-secondary" onclick="toggleAddMachineForm()">Abbrechen</button>
+      </div>
+    </div>
+
     <div class="machine-grid" id="machineGrid"></div>
   </div>
 </div>
@@ -743,56 +804,34 @@ button.mark.luisa.active{ background:var(--luisa); color:#fff; }
 <!-- MASCHINEN-DETAIL -->
 <div id="machineDetail" class="tab-content">
   <div class="card">
-    <button class="header-btn" onclick="backToMachines()">← Zurück zur Übersicht</button>
-    <div style="display:flex;flex-direction:column;align-items:center;gap:18px;margin-top:20px;">
-      <div class="machine-photo-large" id="machineDetailPhoto"></div>
-      <h2 id="machineDetailName" style="margin:0;"></h2>
+    <div style="display:flex;justify-content:space-between;align-items:center;gap:10px;">
+      <button class="header-btn" onclick="backToMachines()">← Zurück zur Übersicht</button>
+      <details class="item-menu">
+        <summary title="Optionen">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <circle cx="12" cy="12" r="3"></circle>
+            <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82A1.65 1.65 0 0 0 3 13.09H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"></path>
+          </svg>
+        </summary>
+        <div class="actions">
+          <button onclick="toggleAddSubMachineForm()">+ Gerät hinzufügen</button>
+          <button class="delete" onclick="deleteMachineClass()">🗑️ Maschine löschen</button>
+        </div>
+      </details>
     </div>
 
-    <div id="machineInfoView" style="max-width:480px;margin:24px auto 0;">
-      <p id="machineDescription" class="machine-description"></p>
-      <div id="machineNotes" class="machine-notes" style="display:none;"></div>
-      <div class="machine-links">
-        <a id="machineProductLink" href="#" target="_blank" rel="noopener" style="display:none;">🔗 Zur Maschine</a>
-        <a id="machineManualLink" href="#" target="_blank" rel="noopener" style="display:none;">📖 Bedienungsanleitung</a>
-      </div>
-      <div style="text-align:center;">
-        <button class="header-btn" onclick="editMachineInfo()">✏️ Bearbeiten</button>
-      </div>
-    </div>
-
-    <div id="machineInfoForm" class="form-grid" style="max-width:480px;margin:24px auto 0;display:none;">
+    <div id="addSubMachineForm" class="form-grid" style="display:none;margin:20px 0 0;">
       <div class="full">
-        <label for="machineDescInput">Beschreibung</label>
-        <input id="machineDescInput" placeholder="z. B. Marke/Modell, wofür ist sie da?" />
-      </div>
-      <div class="full">
-        <label for="machineProductInput">Link zur Maschine</label>
-        <input id="machineProductInput" placeholder="https://…" />
-      </div>
-      <div class="full">
-        <label for="machineManualInput">Bedienungsanleitung (Link)</label>
-        <input id="machineManualInput" placeholder="https://…" />
-      </div>
-      <div class="full">
-        <label for="machineNotesInput">Hinweis</label>
-        <input id="machineNotesInput" placeholder="z. B. Achtung: Maschinenschein notwendig" />
+        <label for="newSubMachineName">Name des Geräts</label>
+        <input id="newSubMachineName" placeholder="z. B. Festool Sauger" />
       </div>
       <div class="full form-actions">
-        <button class="btn-primary" onclick="saveMachineInfo()">💾 Speichern</button>
-        <button class="btn-secondary" onclick="cancelMachineInfoEdit()">Abbrechen</button>
+        <button class="btn-primary" onclick="submitSubMachine()">Hinzufügen</button>
+        <button class="btn-secondary" onclick="toggleAddSubMachineForm()">Abbrechen</button>
       </div>
     </div>
 
-    <div style="max-width:480px;margin:32px auto 0;">
-      <div class="card-header" style="margin-bottom:12px;">
-        <span></span>
-        <h2 style="font-size:15px;">🧰 Mini-Inventar</h2>
-        <span></span>
-      </div>
-      <button class="header-btn" style="width:100%;margin-bottom:14px;" onclick="addArticleForMachine()">+ Artikel für diese Maschine hinzufügen</button>
-      <ul id="machineInventoryList"></ul>
-    </div>
+    <div id="subMachineList" style="margin-top:20px;"></div>
   </div>
 </div>
 
@@ -910,10 +949,16 @@ function normalize(data){
 
 function normalizeMachineInfo(data){
   return {
+    name: data.name || "",
     description: data.description || "",
     productLink: data.productLink || "",
     manualLink: data.manualLink || "",
-    notes: data.notes || ""
+    notes: data.notes || "",
+    requiresLicense: data.requiresLicense || false,
+    photoUrl: data.photoUrl || "",
+    groupId: data.groupId || "",
+    parentSlug: data.parentSlug || "",
+    createdAt: data.createdAt || Date.now()
   };
 }
 
@@ -991,17 +1036,12 @@ window.showMachineDetail = function(name){
   inventory.classList.remove("active");
   machines.classList.remove("active");
   machineDetail.classList.add("active");
-  machineDetailName.textContent = name;
-  machineDetailPhoto.style.backgroundImage = machinePhotos[name] ? `url('${machinePhotos[name]}')` : "";
-  machineDetailPhoto.style.backgroundSize = "cover";
-  machineDetailPhoto.style.backgroundPosition = "center";
   inventoryBtn.classList.remove("active");
   inventoryBtn.textContent = "📦 Inventar";
   machinesBtn.classList.add("active");
   machinesBtn.textContent = "🛒 Zu den Listen";
-  cancelMachineInfoEdit();
-  renderMachineInfo();
-  renderMachineInventory();
+  addSubMachineForm.style.display = "none";
+  renderSubMachines();
   window.scrollTo({ top:0, behavior:"smooth" });
 };
 
@@ -1010,73 +1050,277 @@ window.backToMachines = function(){
   machines.classList.add("active");
 };
 
-/* =========================
-   MASCHINEN-INFO (Beschreibung, Links, Hinweis)
-========================= */
-function renderMachineInfo(){
+window.deleteMachineClass = async function(){
   if(!currentMachine) return;
-  const info = machineInfoCache[machineSlug(currentMachine)] || normalizeMachineInfo({});
+  const slug = machineSlug(currentMachine);
+  const children = Object.values(machineInfoCache).filter(m=>m.parentSlug===slug);
+  const msg = children.length > 0
+    ? `"${currentMachine}" und alle ${children.length} zugehörigen Geräte wirklich löschen?`
+    : `"${currentMachine}" wirklich löschen?`;
+  if(!confirm(msg)) return;
+  await Promise.all(children.map(m=>deleteDoc(doc(machinesRef, m.id))));
+  await deleteDoc(doc(machinesRef, slug));
+  showStatus("🗑️ Maschine gelöscht", false);
+  backToMachines();
+};
 
-  machineDescription.textContent = info.description || "Noch keine Beschreibung hinterlegt.";
+/* =========================
+   FOTO-UPLOAD (Cloudinary)
+========================= */
+const CLOUDINARY_CLOUD_NAME = "";
+const CLOUDINARY_UPLOAD_PRESET = "";
 
-  machineNotes.style.display = info.notes ? "block" : "none";
-  machineNotes.textContent = info.notes ? "⚠️ " + info.notes : "";
-
-  machineProductLink.style.display = info.productLink ? "inline" : "none";
-  machineProductLink.href = info.productLink || "#";
-
-  machineManualLink.style.display = info.manualLink ? "inline" : "none";
-  machineManualLink.href = info.manualLink || "#";
+async function uploadToCloudinary(file){
+  const formData = new FormData();
+  formData.append("file", file);
+  formData.append("upload_preset", CLOUDINARY_UPLOAD_PRESET);
+  const res = await fetch(`https://api.cloudinary.com/v1_1/${CLOUDINARY_CLOUD_NAME}/image/upload`, {
+    method: "POST",
+    body: formData
+  });
+  const data = await res.json();
+  if(!data.secure_url) throw new Error(data.error?.message || "Upload fehlgeschlagen");
+  return data.secure_url;
 }
 
-window.editMachineInfo = function(){
-  const info = machineInfoCache[machineSlug(currentMachine)] || normalizeMachineInfo({});
-  machineDescInput.value = info.description;
-  machineProductInput.value = info.productLink;
-  machineManualInput.value = info.manualLink;
-  machineNotesInput.value = info.notes;
-  machineInfoView.style.display = "none";
-  machineInfoForm.style.display = "grid";
-};
-
-window.cancelMachineInfoEdit = function(){
-  machineInfoForm.style.display = "none";
-  machineInfoView.style.display = "block";
-};
-
-window.saveMachineInfo = async function(){
-  const info = normalizeMachineInfo({
-    description: machineDescInput.value,
-    productLink: machineProductInput.value,
-    manualLink: machineManualInput.value,
-    notes: machineNotesInput.value
-  });
-  await setDoc(doc(machinesRef, machineSlug(currentMachine)), info);
-  cancelMachineInfoEdit();
-  showStatus("✅ Maschinen-Info gespeichert", false);
-};
-
 /* =========================
-   MINI-INVENTAR PRO MASCHINE
+   UNTERGERÄTE (Gerätekarten mit eigenem Foto/Info/Mini-Inventar)
 ========================= */
-function renderMachineInventory(){
-  if(!currentMachine || !machineDetail.classList.contains("active")) return;
-  machineInventoryList.innerHTML = "";
-  const items = inventoryDocsCache.filter(d=>d.data.machine === currentMachine);
+function renderSubMachineBlock(m){
+  const slug = m.id;
+  const card = document.createElement("div");
+  card.className = "gerat-card";
+
+  const photoWrap = document.createElement("div");
+  photoWrap.style.cssText = "display:flex;flex-direction:column;align-items:center;gap:10px;";
+
+  const photoContainer = document.createElement("div");
+  photoContainer.style.cssText = "position:relative;width:170px;height:170px;";
+
+  const photo = document.createElement("div");
+  photo.className = "machine-photo-large";
+  if(m.photoUrl){
+    photo.style.backgroundImage = `url('${m.photoUrl}')`;
+    photo.style.backgroundSize = "cover";
+    photo.style.backgroundPosition = "center";
+  }
+
+  const fileInput = document.createElement("input");
+  fileInput.type = "file";
+  fileInput.accept = "image/*";
+  fileInput.capture = "environment";
+  fileInput.style.display = "none";
+  fileInput.onchange = async (event)=>{
+    const file = event.target.files[0];
+    event.target.value = "";
+    if(!file) return;
+    try {
+      showStatus("⏳ Foto wird hochgeladen…", false);
+      const url = await uploadToCloudinary(file);
+      const existing = machineInfoCache[slug] || {};
+      await setDoc(doc(machinesRef, slug), normalizeMachineInfo({ ...existing, photoUrl:url }));
+      showStatus("✅ Foto gespeichert", false);
+    } catch(e){
+      showStatus("❌ Foto-Upload fehlgeschlagen: " + e.message, true);
+    }
+  };
+
+  const photoBtn = document.createElement("button");
+  photoBtn.className = "photo-edit-btn";
+  photoBtn.textContent = "✏️";
+  photoBtn.title = "Foto ändern";
+  photoBtn.setAttribute("aria-label", "Foto ändern");
+  photoBtn.onclick = () => fileInput.click();
+
+  photoContainer.append(photo, photoBtn, fileInput);
+
+  const nameHeading = document.createElement("h3");
+  nameHeading.style.cssText = "margin:0;text-align:center;font-size:16px;";
+  nameHeading.textContent = m.name;
+
+  photoWrap.append(photoContainer, nameHeading);
+
+  const infoView = document.createElement("div");
+  infoView.style.cssText = "max-width:480px;margin:16px auto 0;";
+
+  const desc = document.createElement("p");
+  desc.className = "machine-description";
+  desc.textContent = m.description || "Noch keine Beschreibung hinterlegt.";
+
+  const licenseEl = document.createElement("div");
+  licenseEl.className = "machine-notes";
+  licenseEl.style.display = m.requiresLicense ? "block" : "none";
+  licenseEl.textContent = "⚠️ Achtung: Maschinenschein notwendig";
+
+  const notesEl = document.createElement("div");
+  notesEl.className = "machine-notes";
+  notesEl.style.display = m.notes ? "block" : "none";
+  notesEl.textContent = m.notes ? "⚠️ " + m.notes : "";
+
+  const linksWrap = document.createElement("div");
+  linksWrap.className = "machine-links";
+  if(m.productLink){
+    const a = document.createElement("a");
+    a.href = m.productLink; a.target = "_blank"; a.rel = "noopener";
+    a.textContent = "🔗 Zur Maschine";
+    linksWrap.appendChild(a);
+  }
+  if(m.manualLink){
+    const a = document.createElement("a");
+    a.href = m.manualLink; a.target = "_blank"; a.rel = "noopener";
+    a.textContent = "📖 Bedienungsanleitung";
+    linksWrap.appendChild(a);
+  }
+
+  const editBtnWrap = document.createElement("div");
+  editBtnWrap.style.cssText = "display:flex;justify-content:center;gap:10px;";
+  const editBtn = document.createElement("button");
+  editBtn.className = "header-btn";
+  editBtn.textContent = "✏️ Bearbeiten";
+  const deleteGeratBtn = document.createElement("button");
+  deleteGeratBtn.className = "delete";
+  deleteGeratBtn.textContent = "🗑️ Löschen";
+  deleteGeratBtn.onclick = async () => {
+    if(!confirm(`"${m.name}" wirklich löschen?`)) return;
+    await deleteDoc(doc(machinesRef, slug));
+    showStatus("🗑️ Gerät gelöscht", false);
+  };
+  editBtnWrap.append(editBtn, deleteGeratBtn);
+
+  infoView.append(desc, licenseEl, notesEl, linksWrap, editBtnWrap);
+
+  const infoForm = document.createElement("div");
+  infoForm.className = "form-grid";
+  infoForm.style.cssText = "max-width:480px;margin:16px auto 0;display:none;";
+  infoForm.innerHTML = `
+    <div class="full">
+      <label>Beschreibung</label>
+      <input class="gerat-desc-input" placeholder="z. B. Marke/Modell, wofür ist es da?" />
+    </div>
+    <div class="full">
+      <label>Link zum Gerät</label>
+      <input class="gerat-product-input" placeholder="https://…" />
+    </div>
+    <div class="full">
+      <label>Bedienungsanleitung (Link)</label>
+      <input class="gerat-manual-input" placeholder="https://…" />
+    </div>
+    <div class="full">
+      <label>Hinweis</label>
+      <input class="gerat-notes-input" placeholder="z. B. für Stecheisen und Co" />
+    </div>
+    <label class="full" style="display:flex;align-items:center;gap:8px;cursor:pointer;text-transform:none;font-weight:600;font-size:13px;color:var(--text);">
+      <input type="checkbox" class="gerat-license-input" style="width:auto;" />
+      Maschinenschein erforderlich
+    </label>
+    <div class="full form-actions">
+      <button class="btn-primary gerat-save-btn">💾 Speichern</button>
+      <button class="btn-secondary gerat-cancel-btn">Abbrechen</button>
+    </div>
+  `;
+  const descInput = infoForm.querySelector(".gerat-desc-input");
+  const productInput = infoForm.querySelector(".gerat-product-input");
+  const manualInput = infoForm.querySelector(".gerat-manual-input");
+  const notesInput = infoForm.querySelector(".gerat-notes-input");
+  const licenseInput = infoForm.querySelector(".gerat-license-input");
+
+  editBtn.onclick = () => {
+    descInput.value = m.description;
+    productInput.value = m.productLink;
+    manualInput.value = m.manualLink;
+    notesInput.value = m.notes;
+    licenseInput.checked = m.requiresLicense;
+    infoView.style.display = "none";
+    infoForm.style.display = "grid";
+  };
+  infoForm.querySelector(".gerat-cancel-btn").onclick = () => {
+    infoForm.style.display = "none";
+    infoView.style.display = "block";
+  };
+  infoForm.querySelector(".gerat-save-btn").onclick = async () => {
+    const existing = machineInfoCache[slug] || {};
+    const info = normalizeMachineInfo({
+      ...existing,
+      description: descInput.value,
+      productLink: productInput.value,
+      manualLink: manualInput.value,
+      notes: notesInput.value,
+      requiresLicense: licenseInput.checked
+    });
+    await setDoc(doc(machinesRef, slug), info);
+    infoForm.style.display = "none";
+    infoView.style.display = "block";
+    showStatus("✅ Gespeichert", false);
+  };
+
+  const invWrap = document.createElement("div");
+  invWrap.style.cssText = "max-width:480px;margin:20px auto 0;";
+  const invHeader = document.createElement("div");
+  invHeader.className = "card-header";
+  invHeader.style.marginBottom = "12px";
+  invHeader.innerHTML = `<span></span><h2 style="font-size:14px;">🧰 Mini-Inventar</h2><span></span>`;
+
+  const addArticleBtn = document.createElement("button");
+  addArticleBtn.className = "header-btn";
+  addArticleBtn.style.cssText = "width:100%;margin-bottom:12px;";
+  addArticleBtn.textContent = "+ Artikel für dieses Gerät hinzufügen";
+  addArticleBtn.onclick = () => {
+    editContext = null;
+    resetAddForm();
+    newMachine.value = m.name;
+    addForm.style.display = "block";
+    addFormBtn.textContent = "✕ Formular schließen";
+    addForm.scrollIntoView({ behavior:"smooth", block:"start" });
+  };
+
+  const invList = document.createElement("ul");
+  const items = inventoryDocsCache.filter(d=>d.data.machine === m.name);
   if(items.length === 0){
-    machineInventoryList.appendChild(renderEmptyState("Noch keine Artikel für diese Maschine."));
+    invList.appendChild(renderEmptyState("Noch keine Artikel für dieses Gerät."));
+  } else {
+    items.forEach(({data,id})=>invList.appendChild(renderInv(data,id)));
+  }
+  invWrap.append(invHeader, addArticleBtn, invList);
+
+  card.append(photoWrap, infoView, infoForm, invWrap);
+  return card;
+}
+
+function renderSubMachines(){
+  if(!currentMachine) return;
+  subMachineList.innerHTML = "";
+  const slug = machineSlug(currentMachine);
+  const subs = Object.values(machineInfoCache)
+    .filter(m=>m.parentSlug === slug)
+    .sort((a,b)=>(a.createdAt||0)-(b.createdAt||0));
+  if(subs.length === 0){
+    const empty = document.createElement("div");
+    empty.className = "empty-state";
+    empty.textContent = "Noch kein Gerät hinzugefügt. Über das Zahnrad oben rechts kannst du eins anlegen.";
+    subMachineList.appendChild(empty);
     return;
   }
-  items.forEach(({data,id})=>machineInventoryList.appendChild(renderInv(data,id)));
+  subs.forEach(m=>subMachineList.appendChild(renderSubMachineBlock(m)));
 }
 
-window.addArticleForMachine = function(){
-  editContext = null;
-  resetAddForm();
-  newMachine.value = currentMachine;
-  addForm.style.display = "block";
-  addFormBtn.textContent = "✕ Formular schließen";
-  addForm.scrollIntoView({ behavior:"smooth", block:"start" });
+window.toggleAddSubMachineForm = function(){
+  const show = addSubMachineForm.style.display === "none";
+  addSubMachineForm.style.display = show ? "grid" : "none";
+  if(show) newSubMachineName.value = "";
+};
+
+window.submitSubMachine = async function(){
+  const name = newSubMachineName.value.trim();
+  if(!name || !currentMachine) return;
+  const parentSlug = machineSlug(currentMachine);
+  const childSlug = `${parentSlug}__${machineSlug(name)}`;
+  await setDoc(doc(machinesRef, childSlug), normalizeMachineInfo({
+    name,
+    parentSlug,
+    createdAt: Date.now()
+  }));
+  showStatus("✅ Gerät hinzugefügt: " + name, false);
+  toggleAddSubMachineForm();
 };
 
 /* =========================
@@ -1651,65 +1895,120 @@ function renderTrash(){
 }
 
 /* =========================
-   MASCHINEN (Maschinenpatenschaften)
+   MASCHINEN (dynamisch aus Firestore)
 ========================= */
-const machineGroups = [
-  ["Stichsäge","Tauchsäge","Dekupiersäge"],
-  ["Standbohrmaschine","Dremel","Akkuschrauber"],
-  ["Oberfräse","Lamellofräse"],
-  ["Schwingschleifer","Exzenterschleifer"],
-  ["Kantenschleifer"],
-  ["Bandsäge","Kappsäge"],
-  ["mob. Tischkreissäge"],
-  ["Tischkreissäge"],
-  ["Abrichte/Dickenhobel"],
-  ["Staubsauger","(Nass-)Schleifmaschine"],
-  ["Weitere Kleingeräte"]
-];
-
-const machinePhotos = {
-  "Standbohrmaschine": "Bilder/web/standbohrmaschine.jpg",
-  "Tischkreissäge": "Bilder/web/tischkreissaege.jpg",
-  "Oberfräse": "Bilder/web/oberfraese.jpg",
-  "Bandsäge": "Bilder/web/bandsaege.jpg",
-  "Kantenschleifer": "Bilder/web/kantenschleifer.jpg"
-};
+function createMachineRow(m){
+  const row = document.createElement("div");
+  row.className = "machine-row";
+  row.innerHTML = `
+    <div class="machine-photo"${m.photoUrl ? ` style="background-image:url('${m.photoUrl}');background-size:cover;background-position:center;"` : ""}></div>
+    <span class="machine-name">${m.name}</span>
+  `;
+  row.onclick = () => showMachineDetail(m.name);
+  return row;
+}
 
 function renderMachines(){
   machineGrid.innerHTML = "";
-  machineGroups.forEach(group=>{
-    const box = document.createElement("div");
-    box.className = "machine-group";
-    group.forEach(name=>{
-      const row = document.createElement("div");
-      row.className = "machine-row";
-      row.innerHTML = `
-        <div class="machine-photo"${machinePhotos[name] ? ` style="background-image:url('${machinePhotos[name]}');background-size:cover;background-position:center;"` : ""}></div>
-        <span class="machine-name">${name}</span>
-      `;
-      row.onclick = () => showMachineDetail(name);
-      box.appendChild(row);
-    });
-    machineGrid.appendChild(box);
+  const topLevel = Object.values(machineInfoCache).filter(m=>!m.parentSlug);
+  if(topLevel.length === 0){
+    const empty = document.createElement("div");
+    empty.className = "empty-state";
+    empty.textContent = "Noch keine Maschinen angelegt.";
+    machineGrid.appendChild(empty);
+    return;
+  }
+  const groups = {};
+  topLevel.forEach(m=>{
+    const gid = m.groupId || machineSlug(m.name);
+    (groups[gid] = groups[gid] || []).push(m);
   });
+  Object.values(groups)
+    .map(members=>{
+      members.sort((a,b)=>(a.createdAt||0)-(b.createdAt||0));
+      return { minCreated: Math.min(...members.map(m=>m.createdAt||0)), members };
+    })
+    .sort((a,b)=>a.minCreated-b.minCreated)
+    .forEach(({members})=>{
+      const box = document.createElement("div");
+      box.className = "machine-group";
+      members.forEach(m=>box.appendChild(createMachineRow(m)));
+      machineGrid.appendChild(box);
+    });
 }
-renderMachines();
+
+window.toggleAddMachineForm = function(){
+  const show = addMachineForm.style.display === "none";
+  addMachineForm.style.display = show ? "grid" : "none";
+  if(show) newMachineName.value = "";
+  machinesMenu.open = false;
+};
+
+window.submitNewMachine = async function(){
+  const name = newMachineName.value.trim();
+  if(!name) return;
+  const slug = machineSlug(name);
+  await setDoc(doc(machinesRef, slug), normalizeMachineInfo({
+    name,
+    groupId: slug,
+    createdAt: Date.now()
+  }));
+  showStatus("✅ Maschine hinzugefügt: " + name, false);
+  toggleAddMachineForm();
+};
 
 function populateMachineDropdown(){
-  machineGroups.flat().forEach(name=>{
-    const opt = document.createElement("option");
-    opt.value = name;
-    opt.textContent = name;
-    newMachine.appendChild(opt);
-  });
+  const selected = newMachine.value;
+  newMachine.innerHTML = '<option value="">– keine –</option>';
+  Object.values(machineInfoCache)
+    .filter(m=>m.parentSlug)
+    .sort((a,b)=>a.name.localeCompare(b.name,"de"))
+    .forEach(m=>{
+      const opt = document.createElement("option");
+      opt.value = m.name;
+      opt.textContent = m.name;
+      newMachine.appendChild(opt);
+    });
+  newMachine.value = selected;
 }
-populateMachineDropdown();
 
-const defaultMachineNotes = {
-  "Tischkreissäge": "Achtung: Maschinenschein notwendig",
-  "Abrichte/Dickenhobel": "Achtung: Maschinenschein notwendig",
-  "(Nass-)Schleifmaschine": "für Stecheisen und Co",
-  "Weitere Kleingeräte": "z. B. Handhobel, Stecheisen, Messwerkzeug, Winkel, Zangen, Hammer, etc."
+/* =========================
+   ARTIKEL EINER MASCHINE ZUORDNEN
+========================= */
+function populateAssignPanel(){
+  const selectedArticle = assignArticleSelect.value;
+  assignArticleSelect.innerHTML = "";
+  inventoryDocsCache
+    .slice()
+    .sort((a,b)=>a.data.name.localeCompare(b.data.name,"de"))
+    .forEach(({data,id})=>{
+      const opt = document.createElement("option");
+      opt.value = id;
+      opt.textContent = data.name + (data.machine ? ` (${data.machine})` : "");
+      assignArticleSelect.appendChild(opt);
+    });
+  assignArticleSelect.value = selectedArticle;
+
+  const selectedMachine = assignMachineSelect.value;
+  assignMachineSelect.innerHTML = '<option value="">– keine –</option>';
+  Object.values(machineInfoCache)
+    .filter(m=>m.parentSlug)
+    .sort((a,b)=>a.name.localeCompare(b.name,"de"))
+    .forEach(m=>{
+      const opt = document.createElement("option");
+      opt.value = m.name;
+      opt.textContent = m.name;
+      assignMachineSelect.appendChild(opt);
+    });
+  assignMachineSelect.value = selectedMachine;
+}
+
+window.assignArticleToMachine = async function(){
+  const articleId = assignArticleSelect.value;
+  if(!articleId) return;
+  const machine = assignMachineSelect.value;
+  await updateDoc(doc(db,"inventory",articleId), { machine });
+  showStatus("✅ Artikel zugeordnet", false);
 };
 
 /* =========================
@@ -1775,23 +2074,20 @@ onSnapshot(inventoryRef, s=>{
   inventoryList.innerHTML="";
   if(s.empty){ inventoryList.appendChild(renderEmptyState("Inventar ist leer.")); return; }
   s.forEach(d=>inventoryList.appendChild(renderInv(d.data(),d.id)));
-  renderMachineInventory();
+  renderSubMachines();
+  populateAssignPanel();
 }, e=>showStatus("❌ Firebase-Verbindungsfehler: " + e.message, true));
 
 let machineInfoCache = {};
 
 onSnapshot(machinesRef, s=>{
   machineInfoCache = {};
-  s.forEach(d=>{ machineInfoCache[d.id] = normalizeMachineInfo(d.data()); });
+  s.forEach(d=>{ machineInfoCache[d.id] = { ...normalizeMachineInfo(d.data()), id:d.id }; });
 
-  machineGroups.flat().forEach(name=>{
-    const slug = machineSlug(name);
-    if(!machineInfoCache[slug] && defaultMachineNotes[name]){
-      setDoc(doc(machinesRef, slug), normalizeMachineInfo({ notes: defaultMachineNotes[name] }));
-    }
-  });
-
-  renderMachineInfo();
+  renderMachines();
+  renderSubMachines();
+  populateMachineDropdown();
+  populateAssignPanel();
 }, e=>showStatus("❌ Firebase-Verbindungsfehler: " + e.message, true));
 
 </script>
