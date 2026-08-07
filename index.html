@@ -181,6 +181,7 @@ body{
 .machine-links a:hover{ text-decoration:underline; }
 
 .gerat-card{
+  position:relative;
   border:1px solid var(--border);
   border-radius:var(--radius);
   padding:24px 16px;
@@ -1172,10 +1173,20 @@ function renderSubMachineBlock(m){
     linksWrap.appendChild(a);
   }
 
-  const editBtnWrap = document.createElement("div");
-  editBtnWrap.style.cssText = "display:flex;justify-content:center;gap:10px;";
+  infoView.append(desc, licenseEl, notesEl, linksWrap);
+
+  const menu = document.createElement("details");
+  menu.className = "item-menu";
+  menu.style.cssText = "position:absolute;top:14px;right:14px;";
+  const menuSummary = document.createElement("summary");
+  menuSummary.innerHTML = gearIcon;
+  menuSummary.setAttribute("aria-label","Aktionen");
+  menu.append(menuSummary);
+
+  const menuActions = document.createElement("div");
+  menuActions.className = "actions";
   const editBtn = document.createElement("button");
-  editBtn.className = "header-btn";
+  editBtn.className = "edit";
   editBtn.textContent = "✏️ Bearbeiten";
   const deleteGeratBtn = document.createElement("button");
   deleteGeratBtn.className = "delete";
@@ -1185,14 +1196,17 @@ function renderSubMachineBlock(m){
     await deleteDoc(doc(machinesRef, slug));
     showStatus("🗑️ Gerät gelöscht", false);
   };
-  editBtnWrap.append(editBtn, deleteGeratBtn);
-
-  infoView.append(desc, licenseEl, notesEl, linksWrap, editBtnWrap);
+  menuActions.append(editBtn, deleteGeratBtn);
+  menu.append(menuActions);
 
   const infoForm = document.createElement("div");
   infoForm.className = "form-grid";
   infoForm.style.cssText = "max-width:480px;margin:16px auto 0;display:none;";
   infoForm.innerHTML = `
+    <div class="full">
+      <label>Name</label>
+      <input class="gerat-name-input" placeholder="Name des Geräts" />
+    </div>
     <div class="full">
       <label>Beschreibung</label>
       <input class="gerat-desc-input" placeholder="z. B. Marke/Modell, wofür ist es da?" />
@@ -1218,6 +1232,7 @@ function renderSubMachineBlock(m){
       <button class="btn-secondary gerat-cancel-btn">Abbrechen</button>
     </div>
   `;
+  const nameInput = infoForm.querySelector(".gerat-name-input");
   const descInput = infoForm.querySelector(".gerat-desc-input");
   const productInput = infoForm.querySelector(".gerat-product-input");
   const manualInput = infoForm.querySelector(".gerat-manual-input");
@@ -1225,6 +1240,7 @@ function renderSubMachineBlock(m){
   const licenseInput = infoForm.querySelector(".gerat-license-input");
 
   editBtn.onclick = () => {
+    nameInput.value = m.name;
     descInput.value = m.description;
     productInput.value = m.productLink;
     manualInput.value = m.manualLink;
@@ -1232,15 +1248,19 @@ function renderSubMachineBlock(m){
     licenseInput.checked = m.requiresLicense;
     infoView.style.display = "none";
     infoForm.style.display = "grid";
+    menu.open = false;
   };
   infoForm.querySelector(".gerat-cancel-btn").onclick = () => {
     infoForm.style.display = "none";
     infoView.style.display = "block";
   };
   infoForm.querySelector(".gerat-save-btn").onclick = async () => {
+    const newName = nameInput.value.trim();
+    if(!newName) return;
     const existing = machineInfoCache[slug] || {};
     const info = normalizeMachineInfo({
       ...existing,
+      name: newName,
       description: descInput.value,
       productLink: productInput.value,
       manualLink: manualInput.value,
@@ -1248,6 +1268,10 @@ function renderSubMachineBlock(m){
       requiresLicense: licenseInput.checked
     });
     await setDoc(doc(machinesRef, slug), info);
+    if(newName !== m.name){
+      const affected = inventoryDocsCache.filter(d=>d.data.machine === m.name);
+      await Promise.all(affected.map(d=>updateDoc(doc(db,"inventory",d.id), { machine:newName })));
+    }
     infoForm.style.display = "none";
     infoView.style.display = "block";
     showStatus("✅ Gespeichert", false);
@@ -1282,7 +1306,7 @@ function renderSubMachineBlock(m){
   }
   invWrap.append(invHeader, addArticleBtn, invList);
 
-  card.append(photoWrap, infoView, infoForm, invWrap);
+  card.append(menu, photoWrap, infoView, infoForm, invWrap);
   return card;
 }
 
